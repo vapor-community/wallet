@@ -1,6 +1,6 @@
 import PassKit
 import Testing
-import XCTVapor
+import VaporTesting
 import Zip
 
 @testable import Passes

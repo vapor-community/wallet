@@ -50,7 +50,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Passes"),
                 .target(name: "PassKit"),
-                .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ],
             resources: [
@@ -63,7 +63,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Orders"),
                 .target(name: "PassKit"),
-                .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ],
             resources: [
