@@ -7,8 +7,8 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
-        .library(name: "Passes", targets: ["Passes"]),
-        .library(name: "Orders", targets: ["Orders"]),
+        .library(name: "VaporPasses", targets: ["VaporPasses"]),
+        .library(name: "VaporOrders", targets: ["VaporOrders"]),
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.108.0"),
@@ -32,42 +32,40 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .target(
-            name: "Passes",
+            name: "VaporPasses",
             dependencies: [
                 .target(name: "PassKit")
+            ],
+            swiftSettings: swiftSettings
+        ),
+        .testTarget(
+            name: "VaporPassesTests",
+            dependencies: [
+                .target(name: "VaporPasses"),
+                .product(name: "VaporTesting", package: "vapor"),
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+            ],
+            resources: [
+                .copy("SourceFiles")
             ],
             swiftSettings: swiftSettings
         ),
         .target(
-            name: "Orders",
+            name: "VaporOrders",
             dependencies: [
                 .target(name: "PassKit")
             ],
             swiftSettings: swiftSettings
         ),
         .testTarget(
-            name: "PassesTests",
+            name: "VaporOrdersTests",
             dependencies: [
-                .target(name: "Passes"),
-                .target(name: "PassKit"),
+                .target(name: "VaporOrders"),
                 .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ],
             resources: [
-                .copy("Templates")
-            ],
-            swiftSettings: swiftSettings
-        ),
-        .testTarget(
-            name: "OrdersTests",
-            dependencies: [
-                .target(name: "Orders"),
-                .target(name: "PassKit"),
-                .product(name: "VaporTesting", package: "vapor"),
-                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-            ],
-            resources: [
-                .copy("Templates")
+                .copy("SourceFiles")
             ],
             swiftSettings: swiftSettings
         ),

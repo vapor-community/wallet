@@ -52,10 +52,10 @@ extension PassData {
         if self.requiresPersonalization {
             // If the pass requires personalization, return the URL path to the personalization template,
             // which must contain the `personalizationLogo@XX.png` file.
-            return "Templates/Passes/Personalization/"
+            return "SourceFiles/Passes/Personalization/"
         } else {
             // Otherwise, return the URL path to the standard pass template.
-            return "Templates/Passes/Standard/"
+            return "SourceFiles/Passes/Standard/"
         }
     }
 }

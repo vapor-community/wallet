@@ -3,10 +3,10 @@ import Testing
 import VaporTesting
 import Zip
 
-@testable import Orders
+@testable import VaporOrders
 
-@Suite("Orders Tests", .serialized)
-struct OrdersTests {
+@Suite("VaporOrders Tests", .serialized)
+struct VaporOrdersTests {
     let ordersURI = "/api/orders/v1/"
     let decoder = JSONDecoder()
 

@@ -1,11 +1,11 @@
 import Fluent
 import Foundation
-import Passes
+import VaporPasses
 
 final class PassData: PassDataModel, @unchecked Sendable {
     static let schema = PassData.FieldKeys.schemaName
 
-    static let typeIdentifier = "pass.com.vapor-community.Passes"
+    static let typeIdentifier = "pass.com.vapor-community.VaporPasses"
 
     @ID(key: .id)
     var id: UUID?
@@ -52,7 +52,7 @@ extension PassData {
     }
 
     func template(on db: any Database) async throws -> String {
-        "\(FileManager.default.currentDirectoryPath)/Tests/PassesTests/Templates/"
+        "\(FileManager.default.currentDirectoryPath)/Tests/VaporPassesTests/SourceFiles/"
     }
 
     func personalizationJSON(on db: any Database) async throws -> PersonalizationJSON? {

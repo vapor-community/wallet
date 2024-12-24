@@ -1,6 +1,6 @@
 import Fluent
 import Foundation
-import Orders
+import VaporOrders
 
 final class OrderData: OrderDataModel, @unchecked Sendable {
     static let schema = OrderData.FieldKeys.schemaName
@@ -52,6 +52,6 @@ extension OrderData {
     }
 
     func template(on db: any Database) async throws -> String {
-        "\(FileManager.default.currentDirectoryPath)/Tests/OrdersTests/Templates/"
+        "\(FileManager.default.currentDirectoryPath)/Tests/VaporOrdersTests/SourceFiles/"
     }
 }

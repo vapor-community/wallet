@@ -1,11 +1,10 @@
-# ``Passes/PassesService``
+# ``VaporOrders/OrdersService``
 
 ## Topics
 
 ### Essentials
 
-- ``build(pass:on:)``
-- ``build(passes:on:)``
+- ``build(order:on:)``
 - ``register(migrations:)``
 
 ### Push Notifications

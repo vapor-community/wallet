@@ -1,7 +1,7 @@
 import FluentKit
 import FluentSQLiteDriver
 import PassKit
-import Passes
+import VaporPasses
 import Testing
 import Vapor
 import Zip

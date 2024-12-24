@@ -4,22 +4,22 @@ Create the pass data model, build a pass for Apple Wallet and distribute it with
 
 ## Overview
 
-The Passes framework provides models to save all the basic information for passes, user devices and their registration to each pass.
+The VaporPasses framework provides models to save all the basic information for passes, user devices and their registration to each pass.
 For all the other custom data needed to generate the pass, such as the barcodes, locations, etc., you have to create your own model and its model middleware to handle the creation and update of passes.
 The pass data model will be used to generate the `pass.json` file contents.
 
 The pass you distribute to a user is a signed bundle that contains the `pass.json` file, images and optional localizations.
-The Passes framework provides the ``PassesService`` class that handles the creation of the pass JSON file and the signing of the pass bundle.
+The VaporPasses framework provides the ``PassesService`` class that handles the creation of the pass JSON file and the signing of the pass bundle.
 The ``PassesService`` class also provides methods to send push notifications to all devices registered when you update a pass, and all the routes that Apple Wallet uses to retrieve passes.
 
 ### Implement the Pass Data Model
 
-Your data model should contain all the fields that you store for your pass, as well as a foreign key to ``Pass``, the pass model offered by the Passes framework, and a pass type identifier that's registered with Apple.
+Your data model should contain all the fields that you store for your pass, as well as a foreign key to ``Pass``, the pass model offered by the VaporPasses framework, and a pass type identifier that's registered with Apple.
 
 ```swift
 import Fluent
 import Foundation
-import Passes
+import VaporPasses
 
 final class PassData: PassDataModel, @unchecked Sendable {
     static let schema = "pass_data"
@@ -72,7 +72,7 @@ extension PassData {
 
     func template(on db: any Database) async throws -> String {
         // The location might vary depending on the type of pass.
-        "Templates/Passes/"
+        "SourceFiles/Passes/"
     }
 }
 ```
@@ -92,7 +92,7 @@ Create an initializer that takes your custom pass data, the ``Pass`` and everyth
 > Tip: For information on the various keys available see the [documentation](https://developer.apple.com/documentation/walletpasses/pass). See also [this guide](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/index.html#//apple_ref/doc/uid/TP40012195-CH1-SW1) for some help.
 
 ```swift
-import Passes
+import VaporPasses
 
 struct PassJSONData: PassJSON.Properties {
     let description: String
@@ -161,7 +161,7 @@ This will implement all of the routes that Apple Wallet expects to exist on your
 ```swift
 import Fluent
 import Vapor
-import Passes
+import VaporPasses
 
 public func configure(_ app: Application) async throws {
     ...
@@ -192,7 +192,7 @@ If you don't like the schema names provided by default, you can create your own 
 import Fluent
 import Vapor
 import PassKit
-import Passes
+import VaporPasses
 
 public func configure(_ app: Application) async throws {
     ...
@@ -244,7 +244,7 @@ To generate and distribute the `.pkpass` bundle, pass the ``PassesService`` obje
 ```swift
 import Fluent
 import Vapor
-import Passes
+import VaporPasses
 
 struct PassesController: RouteCollection {
     let passesService: PassesService

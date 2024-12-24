@@ -4,7 +4,7 @@ Create, distribute, and update passes and orders for the Apple Wallet app with V
 
 ## Overview
 
-The PassKit framework provides a set of tools shared by the Passes and Orders frameworks, which includes the two protocols for defining custom models for device data and error logs.
+The PassKit framework provides a set of tools shared by the VaporPasses and VaporOrders frameworks, which includes the two protocols for defining custom models for device data and error logs.
 
 @Row {
     @Column(size: 2) { }
@@ -16,7 +16,7 @@ The PassKit framework provides a set of tools shared by the Passes and Orders fr
 
 ### 🎟️ Wallet Passes
 
-The Passes framework provides a set of tools to help you create, build, and distribute digital passes for the Apple Wallet app using a Vapor server.
+The VaporPasses framework provides a set of tools to help you create, build, and distribute digital passes for the Apple Wallet app using a Vapor server.
 It also provides a way to update passes after they have been distributed, using APNs, and models to store pass and device data.
 
 See the framework's [documentation](https://swiftpackageindex.com/vapor-community/PassKit/documentation/passes) for information and guides on how to use it.
@@ -25,7 +25,7 @@ For information on Apple Wallet passes, see the [Apple Developer Documentation](
 
 ### 📦 Wallet Orders
 
-The Orders framework provides a set of tools to help you create, build, and distribute orders that users can track and manage in Apple Wallet using a Vapor server.
+The VaporOrders framework provides a set of tools to help you create, build, and distribute orders that users can track and manage in Apple Wallet using a Vapor server.
 It also provides a way to update orders after they have been distributed, using APNs, and models to store order and device data.
 
 See the framework's [documentation](https://swiftpackageindex.com/vapor-community/PassKit/documentation/orders) for information and guides on how to use it.

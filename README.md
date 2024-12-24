@@ -30,13 +30,13 @@ Use the SPM string to easily include the dependendency in your `Package.swift` f
 
 ## 🎟️ Wallet Passes
 
-The Passes framework provides a set of tools to help you create, build, and distribute digital passes for the Apple Wallet app using a Vapor server.
+The VaporPasses framework provides a set of tools to help you create, build, and distribute digital passes for the Apple Wallet app using a Vapor server.
 It also provides a way to update passes after they have been distributed, using APNs, and models to store pass and device data.
 
-Add the `Passes` product to your target's dependencies:
+Add the `VaporPasses` product to your target's dependencies:
 
 ```swift
-.product(name: "Passes", package: "PassKit")
+.product(name: "VaporPasses", package: "PassKit")
 ```
 
 See the framework's [documentation](https://swiftpackageindex.com/vapor-community/PassKit/documentation/passes) for information and guides on how to use it.
@@ -45,13 +45,13 @@ For information on Apple Wallet passes, see the [Apple Developer Documentation](
 
 ## 📦 Wallet Orders
 
-The Orders framework provides a set of tools to help you create, build, and distribute orders that users can track and manage in Apple Wallet using a Vapor server.
+The VaporOrders framework provides a set of tools to help you create, build, and distribute orders that users can track and manage in Apple Wallet using a Vapor server.
 It also provides a way to update orders after they have been distributed, using APNs, and models to store order and device data.
 
-Add the `Orders` product to your target's dependencies:
+Add the `VaporOrders` product to your target's dependencies:
 
 ```swift
-.product(name: "Orders", package: "PassKit")
+.product(name: "VaporOrders", package: "PassKit")
 ```
 
 See the framework's [documentation](https://swiftpackageindex.com/vapor-community/PassKit/documentation/orders) for information and guides on how to use it.
