@@ -7,8 +7,8 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
-        .library(name: "VaporPasses", targets: ["VaporPasses"]),
-        .library(name: "VaporOrders", targets: ["VaporOrders"]),
+        .library(name: "VaporWalletPasses", targets: ["VaporWalletPasses"]),
+        .library(name: "VaporWalletOrders", targets: ["VaporWalletOrders"]),
     ],
     dependencies: [
         .package(url: "https://github.com/fpseverino/swift-wallet.git", branch: "main"),
@@ -29,7 +29,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .target(
-            name: "VaporPasses",
+            name: "VaporWalletPasses",
             dependencies: [
                 .target(name: "PassKit"),
                 .product(name: "WalletPasses", package: "swift-wallet"),
@@ -39,9 +39,9 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(
-            name: "VaporPassesTests",
+            name: "VaporWalletPassesTests",
             dependencies: [
-                .target(name: "VaporPasses"),
+                .target(name: "VaporWalletPasses"),
                 .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ],
@@ -51,7 +51,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .target(
-            name: "VaporOrders",
+            name: "VaporWalletOrders",
             dependencies: [
                 .target(name: "PassKit"),
                 .product(name: "WalletOrders", package: "swift-wallet"),
@@ -61,9 +61,9 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(
-            name: "VaporOrdersTests",
+            name: "VaporWalletOrdersTests",
             dependencies: [
-                .target(name: "VaporOrders"),
+                .target(name: "VaporWalletOrders"),
                 .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ],

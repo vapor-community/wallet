@@ -1,14 +1,13 @@
 import FluentWalletOrders
-import WalletOrders
-import PassKit
 import Testing
 import VaporTesting
+import WalletOrders
 import Zip
 
-@testable import VaporOrders
+@testable import VaporWalletOrders
 
-@Suite("VaporOrders Tests", .serialized)
-struct VaporOrdersTests {
+@Suite("VaporWalletOrders Tests", .serialized)
+struct VaporWalletOrdersTests {
     let ordersURI = "/api/orders/v1/"
     let decoder = JSONDecoder()
 

@@ -1,27 +1,26 @@
 import FluentKit
-import FluentWalletOrders
 import FluentSQLiteDriver
-import WalletOrders
-import PassKit
+import FluentWalletPasses
 import Testing
 import Vapor
-import VaporOrders
+import VaporWalletPasses
+import WalletPasses
 import Zip
 
 func withApp(
     useEncryptedKey: Bool = false,
-    _ body: (Application, OrdersService<OrderData>) async throws -> Void
+    _ body: (Application, PassesService<PassData>) async throws -> Void
 ) async throws {
     let app = try await Application.make(.testing)
     do {
         try #require(isLoggingConfigured)
 
         app.databases.use(.sqlite(.memory), as: .sqlite)
-        OrdersService<OrderData>.register(migrations: app.migrations)
-        app.migrations.add(CreateOrderData())
+        PassesService<PassData>.register(migrations: app.migrations)
+        app.migrations.add(CreatePassData())
         try await app.autoMigrate()
 
-        let ordersService = try OrdersService<OrderData>(
+        let passesService = try PassesService<PassData>(
             app: app,
             pushRoutesMiddleware: SecretMiddleware(secret: "foo"),
             logger: app.logger,
@@ -30,11 +29,11 @@ func withApp(
             pemPrivateKey: useEncryptedKey ? TestCertificate.encryptedPemPrivateKey : TestCertificate.pemPrivateKey,
             pemPrivateKeyPassword: useEncryptedKey ? "password" : nil
         )
-        app.databases.middleware.use(ordersService, on: .sqlite)
+        app.databases.middleware.use(passesService, on: .sqlite)
 
-        Zip.addCustomFileExtension("order")
+        Zip.addCustomFileExtension("pkpass")
 
-        try await body(app, ordersService)
+        try await body(app, passesService)
 
         try await app.autoRevert()
     } catch {

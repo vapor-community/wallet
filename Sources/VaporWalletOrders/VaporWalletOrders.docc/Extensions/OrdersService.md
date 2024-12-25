@@ -1,4 +1,4 @@
-# ``VaporOrders/OrdersService``
+# ``VaporWalletOrders/OrdersService``
 
 ## Topics
 

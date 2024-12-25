@@ -1,4 +1,4 @@
-# ``VaporOrders/OrderJSON``
+# ``VaporWalletOrders/OrderJSON``
 
 ## Topics
 

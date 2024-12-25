@@ -1,14 +1,13 @@
 import FluentWalletPasses
-import PassKit
-import WalletPasses
 import Testing
 import VaporTesting
+import WalletPasses
 import Zip
 
-@testable import VaporPasses
+@testable import VaporWalletPasses
 
-@Suite("VaporPasses Tests", .serialized)
-struct VaporPassesTests {
+@Suite("VaporWalletPasses Tests", .serialized)
+struct VaporWalletPassesTests {
     let passesURI = "/api/passes/v1/"
     let decoder = JSONDecoder()
 

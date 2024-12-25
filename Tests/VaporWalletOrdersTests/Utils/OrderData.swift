@@ -1,8 +1,8 @@
 import Fluent
 import FluentWalletOrders
 import Foundation
+import VaporWalletOrders
 import WalletOrders
-import VaporOrders
 
 final class OrderData: OrderDataModel, @unchecked Sendable {
     static let schema = OrderData.FieldKeys.schemaName
@@ -54,6 +54,6 @@ extension OrderData {
     }
 
     func sourceFilesDirectoryPath(on db: any Database) async throws -> String {
-        "\(FileManager.default.currentDirectoryPath)/Tests/VaporOrdersTests/SourceFiles/"
+        "\(FileManager.default.currentDirectoryPath)/Tests/VaporWalletOrdersTests/SourceFiles/"
     }
 }

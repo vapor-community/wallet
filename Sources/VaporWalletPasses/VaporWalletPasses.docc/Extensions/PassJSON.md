@@ -1,4 +1,4 @@
-# ``VaporPasses/PassJSON``
+# ``VaporWalletPasses/PassJSON``
 
 ## Topics
 

@@ -4,22 +4,22 @@ Create the order data model, build an order for Apple Wallet and distribute it w
 
 ## Overview
 
-The VaporOrders framework provides models to save all the basic information for orders, user devices and their registration to each order.
+The VaporWalletOrders framework provides models to save all the basic information for orders, user devices and their registration to each order.
 For all the other custom data needed to generate the order, such as the barcodes, merchant info, etc., you have to create your own model and its model middleware to handle the creation and update of order.
 The order data model will be used to generate the `order.json` file contents.
 
 The order you distribute to a user is a signed bundle that contains the `order.json` file, images, and optional localizations.
-The VaporOrders framework provides the ``OrdersService`` class that handles the creation of the order JSON file and the signing of the order bundle.
+The VaporWalletOrders framework provides the ``OrdersService`` class that handles the creation of the order JSON file and the signing of the order bundle.
 The ``OrdersService`` class also provides methods to send push notifications to all devices registered when you update an order, and all the routes that Apple Wallet uses to retrieve orders.
 
 ### Implement the Order Data Model
 
-Your data model should contain all the fields that you store for your order, as well as a foreign key to ``Order``, the order model offered by the VaporOrders framework, and a order type identifier that's registered with Apple.
+Your data model should contain all the fields that you store for your order, as well as a foreign key to ``Order``, the order model offered by the VaporWalletOrders framework, and a order type identifier that's registered with Apple.
 
 ```swift
 import Fluent
 import Foundation
-import VaporOrders
+import VaporWalletOrders
 
 final class OrderData: OrderDataModel, @unchecked Sendable {
     static let schema = "order_data"
@@ -88,7 +88,7 @@ Create an initializer that takes your custom order data, the ``Order`` and every
 > Tip: For information on the various keys available see the [documentation](https://developer.apple.com/documentation/walletorders/order).
 
 ```swift
-import VaporOrders
+import VaporWalletOrders
 
 struct OrderJSONData: OrderJSON.Properties {
     let schemaVersion = OrderJSON.SchemaVersion.v1
@@ -137,7 +137,7 @@ This will implement all of the routes that Apple Wallet expects to exist on your
 ```swift
 import Fluent
 import Vapor
-import VaporOrders
+import VaporWalletOrders
 
 public func configure(_ app: Application) async throws {
     ...
@@ -167,8 +167,7 @@ If you don't like the schema names provided by default, you can create your own 
 ```swift
 import Fluent
 import Vapor
-import PassKit
-import VaporOrders
+import VaporWalletOrders
 
 public func configure(_ app: Application) async throws {
     ...
@@ -219,7 +218,7 @@ To generate and distribute the `.order` bundle, pass the ``OrdersService`` objec
 ```swift
 import Fluent
 import Vapor
-import VaporOrders
+import VaporWalletOrders
 
 struct OrdersController: RouteCollection {
     let ordersService: OrdersService

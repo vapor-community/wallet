@@ -1,4 +1,4 @@
-# ``VaporPasses/PassesService``
+# ``VaporWalletPasses/PassesService``
 
 ## Topics
 
