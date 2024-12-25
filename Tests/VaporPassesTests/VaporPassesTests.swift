@@ -1,7 +1,6 @@
-import FluentPasses
-import FluentWallet
+import FluentWalletPasses
 import PassKit
-import Passes
+import WalletPasses
 import Testing
 import VaporTesting
 import Zip
@@ -68,7 +67,7 @@ struct VaporPassesTests {
             do {
                 let data = try await passesService.build(passes: [passData1], on: app.db)
                 Issue.record("Expected error, got \(data)")
-            } catch let error as PassesError {
+            } catch let error as WalletPassesError {
                 #expect(error == .invalidNumberOfPasses)
             }
         }

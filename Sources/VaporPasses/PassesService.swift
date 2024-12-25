@@ -27,8 +27,7 @@
 /// THE SOFTWARE.
 
 import FluentKit
-import FluentPasses
-import FluentWallet
+import FluentWalletPasses
 import Vapor
 
 /// The main class that handles Apple Wallet passes.

@@ -1,5 +1,5 @@
 import FluentKit
-import FluentOrders
+import FluentWalletOrders
 import Foundation
 
 extension OrdersService: AsyncModelMiddleware {

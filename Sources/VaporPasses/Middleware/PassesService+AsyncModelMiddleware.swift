@@ -1,5 +1,5 @@
 import FluentKit
-import FluentPasses
+import FluentWalletPasses
 import Foundation
 
 extension PassesService: AsyncModelMiddleware {

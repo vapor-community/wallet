@@ -1,11 +1,10 @@
 import APNS
 import APNSCore
 import Fluent
-import FluentPasses
-import FluentWallet
+import FluentWalletPasses
 import NIOSSL
 import PassKit
-import Passes
+import WalletPasses
 import Vapor
 import VaporAPNS
 @_spi(CMS) import X509
@@ -451,7 +450,7 @@ extension PassesServiceCustom {
     /// - Returns: The bundle of passes as `Data`.
     public func build(passes: [PD], on db: any Database) async throws -> Data {
         guard passes.count > 1 && passes.count <= 10 else {
-            throw PassesError.invalidNumberOfPasses
+            throw WalletPassesError.invalidNumberOfPasses
         }
 
         var files: [ArchiveFile] = []

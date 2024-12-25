@@ -1,6 +1,5 @@
 import FluentKit
-import FluentOrders
-import FluentWallet
+import FluentWalletOrders
 import Vapor
 
 /// The main class that handles Wallet orders.

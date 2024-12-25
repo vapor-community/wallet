@@ -1,7 +1,7 @@
 import Fluent
-import FluentPasses
+import FluentWalletPasses
 import Foundation
-import Passes
+import WalletPasses
 import VaporPasses
 
 final class PassData: PassDataModel, @unchecked Sendable {

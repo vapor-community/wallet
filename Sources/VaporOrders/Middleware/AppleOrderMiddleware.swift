@@ -1,5 +1,5 @@
 import FluentKit
-import FluentOrders
+import FluentWalletOrders
 import Vapor
 
 struct AppleOrderMiddleware<O: OrderModel>: AsyncMiddleware {

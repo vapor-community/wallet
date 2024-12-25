@@ -1,5 +1,5 @@
-import FluentPasses
-import Passes
+import FluentWalletPasses
+import WalletPasses
 
 struct PassJSONData: PassJSON.Properties {
     var description: String

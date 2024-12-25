@@ -1,8 +1,8 @@
 import FluentKit
-import FluentPasses
+import FluentWalletPasses
 import FluentSQLiteDriver
 import PassKit
-import Passes
+import WalletPasses
 import Testing
 import Vapor
 import VaporPasses

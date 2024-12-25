@@ -1,10 +1,9 @@
 import APNS
 import APNSCore
 import Fluent
-import FluentOrders
-import FluentWallet
+import FluentWalletOrders
 import NIOSSL
-import Orders
+import WalletOrders
 import PassKit
 import Vapor
 import VaporAPNS

@@ -1,6 +1,6 @@
-import FluentOrders
+import FluentWalletOrders
 import Foundation
-import Orders
+import WalletOrders
 
 struct OrderJSONData: OrderJSON.Properties {
     var schemaVersion = OrderJSON.SchemaVersion.v1

@@ -1,7 +1,7 @@
 import FluentKit
-import FluentOrders
+import FluentWalletOrders
 import FluentSQLiteDriver
-import Orders
+import WalletOrders
 import PassKit
 import Testing
 import Vapor

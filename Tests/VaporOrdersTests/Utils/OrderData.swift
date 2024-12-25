@@ -1,7 +1,7 @@
 import Fluent
-import FluentOrders
+import FluentWalletOrders
 import Foundation
-import Orders
+import WalletOrders
 import VaporOrders
 
 final class OrderData: OrderDataModel, @unchecked Sendable {

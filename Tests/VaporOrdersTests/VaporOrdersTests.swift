@@ -1,6 +1,5 @@
-import FluentOrders
-import FluentWallet
-import Orders
+import FluentWalletOrders
+import WalletOrders
 import PassKit
 import Testing
 import VaporTesting
