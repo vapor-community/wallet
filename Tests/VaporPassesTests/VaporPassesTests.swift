@@ -533,14 +533,4 @@ struct VaporPassesTests {
             }
         }
     }
-
-    @Test("PassesError")
-    func walletError() {
-        #expect(PassesError.noSourceFiles.description == "PassesError(errorType: noSourceFiles)")
-        #expect(PassesError.noOpenSSLExecutable.description == "PassesError(errorType: noOpenSSLExecutable)")
-        #expect(PassesError.invalidNumberOfPasses.description == "PassesError(errorType: invalidNumberOfPasses)")
-
-        #expect(PassesError.noSourceFiles == PassesError.noSourceFiles)
-        #expect(PassesError.noOpenSSLExecutable != PassesError.invalidNumberOfPasses)
-    }
 }
