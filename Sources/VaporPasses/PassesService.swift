@@ -27,11 +27,13 @@
 /// THE SOFTWARE.
 
 import FluentKit
+import FluentPasses
+import FluentWallet
 import Vapor
 
 /// The main class that handles Apple Wallet passes.
 public final class PassesService<PD: PassDataModel>: Sendable where Pass == PD.PassType {
-    private let service: PassesServiceCustom<PD, Pass, UserPersonalization, PassesDevice, PassesRegistration, PassesErrorLog>
+    private let service: PassesServiceCustom<PD, Pass, Personalization, Device, PassesRegistration, LogEntry>
 
     /// Initializes the service and registers all the routes required for Apple Wallet to work.
     ///
@@ -96,11 +98,11 @@ public final class PassesService<PD: PassDataModel>: Sendable where Pass == PD.P
     ///
     /// - Parameter migrations: The `Migrations` object to add the migrations to.
     public static func register(migrations: Migrations) {
-        migrations.add(UserPersonalization())
-        migrations.add(Pass())
-        migrations.add(PassesDevice())
-        migrations.add(PassesRegistration())
-        migrations.add(PassesErrorLog())
+        migrations.add(CreatePersonalization())
+        migrations.add(CreatePass())
+        migrations.add(CreateDevice())
+        migrations.add(CreatePassesRegistration())
+        migrations.add(CreateLogEntry())
     }
 
     /// Sends push notifications for a given pass.

@@ -11,11 +11,11 @@ let package = Package(
         .library(name: "VaporOrders", targets: ["VaporOrders"]),
     ],
     dependencies: [
+        .package(url: "https://github.com/fpseverino/swift-wallet.git", branch: "main"),
         .package(url: "https://github.com/vapor/vapor.git", from: "4.108.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.12.0"),
+        .package(url: "https://github.com/fpseverino/fluent-wallet.git", branch: "main"),
         .package(url: "https://github.com/vapor/apns.git", from: "4.2.0"),
-        .package(url: "https://github.com/vapor-community/Zip.git", from: "2.2.4"),
-        .package(url: "https://github.com/apple/swift-certificates.git", from: "1.6.1"),
         // used in tests
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.8.0"),
     ],
@@ -23,18 +23,18 @@ let package = Package(
         .target(
             name: "PassKit",
             dependencies: [
-                .product(name: "Fluent", package: "fluent"),
                 .product(name: "Vapor", package: "vapor"),
-                .product(name: "VaporAPNS", package: "apns"),
-                .product(name: "Zip", package: "zip"),
-                .product(name: "X509", package: "swift-certificates"),
+                .product(name: "Fluent", package: "fluent"),
             ],
             swiftSettings: swiftSettings
         ),
         .target(
             name: "VaporPasses",
             dependencies: [
-                .target(name: "PassKit")
+                .target(name: "PassKit"),
+                .product(name: "Passes", package: "swift-wallet"),
+                .product(name: "FluentPasses", package: "fluent-wallet"),
+                .product(name: "VaporAPNS", package: "apns"),
             ],
             swiftSettings: swiftSettings
         ),
@@ -53,7 +53,10 @@ let package = Package(
         .target(
             name: "VaporOrders",
             dependencies: [
-                .target(name: "PassKit")
+                .target(name: "PassKit"),
+                .product(name: "Orders", package: "swift-wallet"),
+                .product(name: "FluentOrders", package: "fluent-wallet"),
+                .product(name: "VaporAPNS", package: "apns"),
             ],
             swiftSettings: swiftSettings
         ),

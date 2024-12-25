@@ -1,3 +1,6 @@
+import FluentOrders
+import FluentWallet
+import Orders
 import PassKit
 import Testing
 import VaporTesting
@@ -284,14 +287,14 @@ struct VaporOrdersTests {
                 .POST,
                 "\(ordersURI)log",
                 beforeRequest: { req async throws in
-                    try req.content.encode(ErrorLogDTO(logs: [log1, log2]))
+                    try req.content.encode(LogEntryDTO(logs: [log1, log2]))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
                 }
             )
 
-            let logs = try await OrdersErrorLog.query(on: app.db).all()
+            let logs = try await LogEntry.query(on: app.db).all()
             #expect(logs.count == 2)
             #expect(logs[0].message == log1)
             #expect(logs[1]._$message.value == log2)
@@ -310,7 +313,7 @@ struct VaporOrdersTests {
                 .POST,
                 "\(ordersURI)log",
                 beforeRequest: { req async throws in
-                    try req.content.encode(ErrorLogDTO(logs: []))
+                    try req.content.encode(LogEntryDTO(logs: []))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .badRequest)

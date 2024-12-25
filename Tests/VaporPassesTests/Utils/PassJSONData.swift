@@ -1,4 +1,5 @@
-import VaporPasses
+import FluentPasses
+import Passes
 
 extension PassJSON.FormatVersion: Decodable {}
 extension PassJSON.BarcodeFormat: Decodable {}

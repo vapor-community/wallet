@@ -1,9 +1,11 @@
 import FluentKit
+import FluentOrders
+import FluentWallet
 import Vapor
 
 /// The main class that handles Wallet orders.
 public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD.OrderType {
-    private let service: OrdersServiceCustom<OD, Order, OrdersDevice, OrdersRegistration, OrdersErrorLog>
+    private let service: OrdersServiceCustom<OD, Order, Device, OrdersRegistration, LogEntry>
 
     /// Initializes the service and registers all the routes required for Apple Wallet to work.
     ///
@@ -53,10 +55,10 @@ public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD
     ///
     /// - Parameter migrations: The `Migrations` object to add the migrations to.
     public static func register(migrations: Migrations) {
-        migrations.add(Order())
-        migrations.add(OrdersDevice())
-        migrations.add(OrdersRegistration())
-        migrations.add(OrdersErrorLog())
+        migrations.add(CreateOrder())
+        migrations.add(CreateDevice())
+        migrations.add(CreateOrdersRegistration())
+        migrations.add(CreateLogEntry())
     }
 
     /// Sends push notifications for a given order.

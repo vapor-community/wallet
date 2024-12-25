@@ -1,4 +1,7 @@
+import FluentPasses
+import FluentWallet
 import PassKit
+import Passes
 import Testing
 import VaporTesting
 import Zip
@@ -65,7 +68,7 @@ struct VaporPassesTests {
             do {
                 let data = try await passesService.build(passes: [passData1], on: app.db)
                 Issue.record("Expected error, got \(data)")
-            } catch let error as WalletError {
+            } catch let error as PassesError {
                 #expect(error == .invalidNumberOfPasses)
             }
         }
@@ -221,10 +224,8 @@ struct VaporPassesTests {
                 }
             )
 
-            let personalizationQuery = try await UserPersonalization.query(on: app.db).all()
+            let personalizationQuery = try await Personalization.query(on: app.db).all()
             #expect(personalizationQuery.count == 1)
-            let passPersonalizationID = try await Pass.query(on: app.db).first()?._$userPersonalization.get(on: app.db)?.requireID()
-            #expect(personalizationQuery[0]._$id.value == passPersonalizationID)
             #expect(personalizationQuery[0]._$emailAddress.value == personalizationDict.requiredPersonalizationInfo.emailAddress)
             #expect(personalizationQuery[0]._$familyName.value == personalizationDict.requiredPersonalizationInfo.familyName)
             #expect(personalizationQuery[0]._$fullName.value == personalizationDict.requiredPersonalizationInfo.fullName)
@@ -422,14 +423,14 @@ struct VaporPassesTests {
                 .POST,
                 "\(passesURI)log",
                 beforeRequest: { req async throws in
-                    try req.content.encode(ErrorLogDTO(logs: [log1, log2]))
+                    try req.content.encode(LogEntryDTO(logs: [log1, log2]))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
                 }
             )
 
-            let logs = try await PassesErrorLog.query(on: app.db).all()
+            let logs = try await LogEntry.query(on: app.db).all()
             #expect(logs.count == 2)
             #expect(logs[0].message == log1)
             #expect(logs[1]._$message.value == log2)
@@ -448,7 +449,7 @@ struct VaporPassesTests {
                 .POST,
                 "\(passesURI)log",
                 beforeRequest: { req async throws in
-                    try req.content.encode(ErrorLogDTO(logs: []))
+                    try req.content.encode(LogEntryDTO(logs: []))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .badRequest)
@@ -533,13 +534,13 @@ struct VaporPassesTests {
         }
     }
 
-    @Test("WalletError")
+    @Test("PassesError")
     func walletError() {
-        #expect(WalletError.noSourceFiles.description == "WalletError(errorType: noSourceFiles)")
-        #expect(WalletError.noOpenSSLExecutable.description == "WalletError(errorType: noOpenSSLExecutable)")
-        #expect(WalletError.invalidNumberOfPasses.description == "WalletError(errorType: invalidNumberOfPasses)")
+        #expect(PassesError.noSourceFiles.description == "PassesError(errorType: noSourceFiles)")
+        #expect(PassesError.noOpenSSLExecutable.description == "PassesError(errorType: noOpenSSLExecutable)")
+        #expect(PassesError.invalidNumberOfPasses.description == "PassesError(errorType: invalidNumberOfPasses)")
 
-        #expect(WalletError.noSourceFiles == WalletError.noSourceFiles)
-        #expect(WalletError.noOpenSSLExecutable != WalletError.invalidNumberOfPasses)
+        #expect(PassesError.noSourceFiles == PassesError.noSourceFiles)
+        #expect(PassesError.noOpenSSLExecutable != PassesError.invalidNumberOfPasses)
     }
 }

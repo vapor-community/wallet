@@ -27,6 +27,7 @@
 /// THE SOFTWARE.
 
 import FluentKit
+import FluentPasses
 import Vapor
 
 struct ApplePassMiddleware<P: PassModel>: AsyncMiddleware {

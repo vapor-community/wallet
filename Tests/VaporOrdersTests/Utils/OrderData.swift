@@ -1,5 +1,7 @@
 import Fluent
+import FluentOrders
 import Foundation
+import Orders
 import VaporOrders
 
 final class OrderData: OrderDataModel, @unchecked Sendable {
@@ -51,7 +53,7 @@ extension OrderData {
         try await OrderJSONData(data: self, order: self.$order.get(on: db))
     }
 
-    func template(on db: any Database) async throws -> String {
+    func sourceFilesDirectoryPath(on db: any Database) async throws -> String {
         "\(FileManager.default.currentDirectoryPath)/Tests/VaporOrdersTests/SourceFiles/"
     }
 }

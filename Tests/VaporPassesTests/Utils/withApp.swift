@@ -1,9 +1,11 @@
 import FluentKit
+import FluentPasses
 import FluentSQLiteDriver
 import PassKit
-import VaporPasses
+import Passes
 import Testing
 import Vapor
+import VaporPasses
 import Zip
 
 func withApp(

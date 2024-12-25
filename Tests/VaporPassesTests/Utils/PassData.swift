@@ -1,5 +1,7 @@
 import Fluent
+import FluentPasses
 import Foundation
+import Passes
 import VaporPasses
 
 final class PassData: PassDataModel, @unchecked Sendable {
@@ -51,14 +53,20 @@ extension PassData {
         try await PassJSONData(data: self, pass: self.$pass.get(on: db))
     }
 
-    func template(on db: any Database) async throws -> String {
+    func sourceFilesDirectoryPath(on db: any Database) async throws -> String {
         "\(FileManager.default.currentDirectoryPath)/Tests/VaporPassesTests/SourceFiles/"
     }
 
     func personalizationJSON(on db: any Database) async throws -> PersonalizationJSON? {
         if self.title != "Personalize" { return nil }
 
-        if try await self.$pass.get(on: db).$userPersonalization.get(on: db) == nil {
+        let pass = try await self.$pass.get(on: db)
+
+        let personalization = try await Personalization.query(on: db)
+            .filter(\.$pass.$id == pass.requireID())
+            .first()
+
+        if personalization == nil {
             return PersonalizationJSON(
                 requiredPersonalizationFields: [.name, .postalCode, .emailAddress, .phoneNumber],
                 description: "Hello, World!"

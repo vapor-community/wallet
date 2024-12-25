@@ -1,5 +1,6 @@
+import FluentOrders
 import Foundation
-import VaporOrders
+import Orders
 
 extension OrderJSON.SchemaVersion: Decodable {}
 extension OrderJSON.OrderType: Decodable {}

@@ -1,7 +1,10 @@
 import APNS
 import APNSCore
 import Fluent
+import FluentOrders
+import FluentWallet
 import NIOSSL
+import Orders
 import PassKit
 import Vapor
 import VaporAPNS
@@ -16,18 +19,16 @@ import Zip
 /// - Device Type
 /// - Registration Type
 /// - Error Log Type
-public final class OrdersServiceCustom<OD: OrderDataModel, O, D, R: OrdersRegistrationModel, E: ErrorLogModel>: Sendable
-where O == OD.OrderType, O == R.OrderType, D == R.DeviceType {
+public final class OrdersServiceCustom<
+    OD: OrderDataModel,
+    O: OrderModel,
+    D: DeviceModel,
+    R: OrdersRegistrationModel,
+    E: LogEntryModel
+>: Sendable where O == OD.OrderType, O == R.OrderType, D == R.DeviceType {
     private unowned let app: Application
     private let logger: Logger?
-
-    private let pemWWDRCertificate: String
-    private let pemCertificate: String
-    private let pemPrivateKey: String
-    private let pemPrivateKeyPassword: String?
-    private let openSSLURL: URL
-
-    private let encoder = JSONEncoder()
+    private let builder: OrderBuilder
 
     /// Initializes the service and registers all the routes required for Apple Wallet to work.
     ///
@@ -52,12 +53,13 @@ where O == OD.OrderType, O == R.OrderType, D == R.DeviceType {
     ) throws {
         self.app = app
         self.logger = logger
-
-        self.pemWWDRCertificate = pemWWDRCertificate
-        self.pemCertificate = pemCertificate
-        self.pemPrivateKey = pemPrivateKey
-        self.pemPrivateKeyPassword = pemPrivateKeyPassword
-        self.openSSLURL = URL(fileURLWithPath: openSSLPath)
+        self.builder = OrderBuilder(
+            pemWWDRCertificate: pemWWDRCertificate,
+            pemCertificate: pemCertificate,
+            pemPrivateKey: pemPrivateKey,
+            pemPrivateKeyPassword: pemPrivateKeyPassword,
+            openSSLPath: openSSLPath
+        )
 
         let privateKeyBytes = pemPrivateKey.data(using: .utf8)!.map { UInt8($0) }
         let certificateBytes = pemCertificate.data(using: .utf8)!.map { UInt8($0) }
@@ -87,7 +89,7 @@ where O == OD.OrderType, O == R.OrderType, D == R.DeviceType {
             apnsConfig,
             eventLoopGroupProvider: .shared(app.eventLoopGroup),
             responseDecoder: JSONDecoder(),
-            requestEncoder: self.encoder,
+            requestEncoder: JSONEncoder(),
             as: .init(string: "orders"),
             isDefault: false
         )
@@ -95,7 +97,7 @@ where O == OD.OrderType, O == R.OrderType, D == R.DeviceType {
         let orderTypeIdentifier = PathComponent(stringLiteral: OD.typeIdentifier)
         let v1 = app.grouped("api", "orders", "v1")
         v1.get("devices", ":deviceIdentifier", "registrations", orderTypeIdentifier, use: { try await self.ordersForDevice(req: $0) })
-        v1.post("log", use: { try await self.logError(req: $0) })
+        v1.post("log", use: { try await self.logMessage(req: $0) })
 
         let v1auth = v1.grouped(AppleOrderMiddleware<O>())
         v1auth.post(
@@ -240,7 +242,7 @@ extension OrdersServiceCustom {
         var orderIdentifiers: [String] = []
         var maxDate = Date.distantPast
         for registration in registrations {
-            let order = registration.order
+            let order = try await registration._$order.get(on: req.db)
             try orderIdentifiers.append(order.requireID().uuidString)
             if let updatedAt = order.updatedAt, updatedAt > maxDate {
                 maxDate = updatedAt
@@ -250,12 +252,12 @@ extension OrdersServiceCustom {
         return OrdersForDeviceDTO(with: orderIdentifiers, maxDate: maxDate)
     }
 
-    fileprivate func logError(req: Request) async throws -> HTTPStatus {
-        logger?.debug("Called logError")
+    fileprivate func logMessage(req: Request) async throws -> HTTPStatus {
+        logger?.debug("Called logMessage")
 
-        let body: ErrorLogDTO
+        let body: LogEntryDTO
         do {
-            body = try req.content.decode(ErrorLogDTO.self)
+            body = try req.content.decode(LogEntryDTO.self)
         } catch {
             throw Abort(.badRequest)
         }
@@ -379,71 +381,6 @@ extension OrdersServiceCustom {
 
 // MARK: - order file generation
 extension OrdersServiceCustom {
-    private func manifest(for directory: URL) throws -> Data {
-        var manifest: [String: String] = [:]
-
-        let paths = try FileManager.default.subpathsOfDirectory(atPath: directory.path)
-        for relativePath in paths {
-            let file = URL(fileURLWithPath: relativePath, relativeTo: directory)
-            guard !file.hasDirectoryPath else {
-                continue
-            }
-
-            let hash = try SHA256.hash(data: Data(contentsOf: file))
-            manifest[relativePath] = hash.map { "0\(String($0, radix: 16))".suffix(2) }.joined()
-        }
-
-        return try encoder.encode(manifest)
-    }
-
-    private func signature(for manifest: Data) throws -> Data {
-        // Swift Crypto doesn't support encrypted PEM private keys, so we have to use OpenSSL for that.
-        if let pemPrivateKeyPassword {
-            guard FileManager.default.fileExists(atPath: self.openSSLURL.path) else {
-                throw WalletError.noOpenSSLExecutable
-            }
-
-            let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-            defer { try? FileManager.default.removeItem(at: dir) }
-
-            try manifest.write(to: dir.appendingPathComponent("manifest.json"))
-            try self.pemWWDRCertificate.write(to: dir.appendingPathComponent("wwdr.pem"), atomically: true, encoding: .utf8)
-            try self.pemCertificate.write(to: dir.appendingPathComponent("certificate.pem"), atomically: true, encoding: .utf8)
-            try self.pemPrivateKey.write(to: dir.appendingPathComponent("private.pem"), atomically: true, encoding: .utf8)
-
-            let process = Process()
-            process.currentDirectoryURL = dir
-            process.executableURL = self.openSSLURL
-            process.arguments = [
-                "smime", "-binary", "-sign",
-                "-certfile", dir.appendingPathComponent("wwdr.pem").path,
-                "-signer", dir.appendingPathComponent("certificate.pem").path,
-                "-inkey", dir.appendingPathComponent("private.pem").path,
-                "-in", dir.appendingPathComponent("manifest.json").path,
-                "-out", dir.appendingPathComponent("signature").path,
-                "-outform", "DER",
-                "-passin", "pass:\(pemPrivateKeyPassword)",
-            ]
-            try process.run()
-            process.waitUntilExit()
-
-            return try Data(contentsOf: dir.appendingPathComponent("signature"))
-        } else {
-            let signature = try CMS.sign(
-                manifest,
-                signatureAlgorithm: .sha256WithRSAEncryption,
-                additionalIntermediateCertificates: [
-                    Certificate(pemEncoded: self.pemWWDRCertificate)
-                ],
-                certificate: Certificate(pemEncoded: self.pemCertificate),
-                privateKey: .init(pemEncoded: self.pemPrivateKey),
-                signingTime: Date()
-            )
-            return Data(signature)
-        }
-    }
-
     /// Generates the order content bundle for a given order.
     ///
     /// - Parameters:
@@ -452,39 +389,9 @@ extension OrdersServiceCustom {
     ///
     /// - Returns: The generated order content as `Data`.
     public func build(order: OD, on db: any Database) async throws -> Data {
-        let filesDirectory = try await URL(fileURLWithPath: order.template(on: db), isDirectory: true)
-        guard
-            (try? filesDirectory.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
-        else {
-            throw WalletError.noSourceFiles
-        }
-
-        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.copyItem(at: filesDirectory, to: tempDir)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        var files: [ArchiveFile] = []
-
-        let orderJSON = try await self.encoder.encode(order.orderJSON(on: db))
-        try orderJSON.write(to: tempDir.appendingPathComponent("order.json"))
-        files.append(ArchiveFile(filename: "order.json", data: orderJSON))
-
-        let manifest = try self.manifest(for: tempDir)
-        files.append(ArchiveFile(filename: "manifest.json", data: manifest))
-        try files.append(ArchiveFile(filename: "signature", data: self.signature(for: manifest)))
-
-        let paths = try FileManager.default.subpathsOfDirectory(atPath: filesDirectory.path)
-        for relativePath in paths {
-            let file = URL(fileURLWithPath: relativePath, relativeTo: tempDir)
-            guard !file.hasDirectoryPath else {
-                continue
-            }
-
-            try files.append(ArchiveFile(filename: relativePath, data: Data(contentsOf: file)))
-        }
-
-        let zipFile = tempDir.appendingPathComponent("\(UUID().uuidString).order")
-        try Zip.zipData(archiveFiles: files, zipFilePath: zipFile)
-        return try Data(contentsOf: zipFile)
+        try await self.builder.build(
+            order: order.orderJSON(on: db),
+            sourceFilesDirectoryPath: order.sourceFilesDirectoryPath(on: db)
+        )
     }
 }

@@ -1,8 +1,11 @@
 import APNS
 import APNSCore
 import Fluent
+import FluentPasses
+import FluentWallet
 import NIOSSL
 import PassKit
+import Passes
 import Vapor
 import VaporAPNS
 @_spi(CMS) import X509
@@ -17,18 +20,17 @@ import Zip
 /// - Device Type
 /// - Registration Type
 /// - Error Log Type
-public final class PassesServiceCustom<PD: PassDataModel, P, U, D, R: PassesRegistrationModel, E: ErrorLogModel>: Sendable
-where P == PD.PassType, P == R.PassType, D == R.DeviceType, U == P.UserPersonalizationType {
+public final class PassesServiceCustom<
+    PD: PassDataModel,
+    P: PassModel,
+    U: PersonalizationModel,
+    D: DeviceModel,
+    R: PassesRegistrationModel,
+    E: LogEntryModel
+>: Sendable where P == PD.PassType, P == R.PassType, D == R.DeviceType, U.PassType == P {
     private unowned let app: Application
     private let logger: Logger?
-
-    private let pemWWDRCertificate: String
-    private let pemCertificate: String
-    private let pemPrivateKey: String
-    private let pemPrivateKeyPassword: String?
-    private let openSSLURL: URL
-
-    private let encoder = JSONEncoder()
+    private let builder: PassBuilder
 
     /// Initializes the service and registers all the routes required for Apple Wallet to work.
     ///
@@ -53,12 +55,13 @@ where P == PD.PassType, P == R.PassType, D == R.DeviceType, U == P.UserPersonali
     ) throws {
         self.app = app
         self.logger = logger
-
-        self.pemWWDRCertificate = pemWWDRCertificate
-        self.pemCertificate = pemCertificate
-        self.pemPrivateKey = pemPrivateKey
-        self.pemPrivateKeyPassword = pemPrivateKeyPassword
-        self.openSSLURL = URL(fileURLWithPath: openSSLPath)
+        self.builder = PassBuilder(
+            pemWWDRCertificate: pemWWDRCertificate,
+            pemCertificate: pemCertificate,
+            pemPrivateKey: pemPrivateKey,
+            pemPrivateKeyPassword: pemPrivateKeyPassword,
+            openSSLPath: openSSLPath
+        )
 
         let privateKeyBytes = pemPrivateKey.data(using: .utf8)!.map { UInt8($0) }
         let certificateBytes = pemCertificate.data(using: .utf8)!.map { UInt8($0) }
@@ -88,7 +91,7 @@ where P == PD.PassType, P == R.PassType, D == R.DeviceType, U == P.UserPersonali
             apnsConfig,
             eventLoopGroupProvider: .shared(app.eventLoopGroup),
             responseDecoder: JSONDecoder(),
-            requestEncoder: self.encoder,
+            requestEncoder: JSONEncoder(),
             as: .init(string: "passes"),
             isDefault: false
         )
@@ -99,7 +102,7 @@ where P == PD.PassType, P == R.PassType, D == R.DeviceType, U == P.UserPersonali
             "devices", ":deviceLibraryIdentifier", "registrations", passTypeIdentifier,
             use: { try await self.passesForDevice(req: $0) }
         )
-        v1.post("log", use: { try await self.logError(req: $0) })
+        v1.post("log", use: { try await self.logMessage(req: $0) })
         v1.post("passes", passTypeIdentifier, ":passSerial", "personalize", use: { try await self.personalizedPass(req: $0) })
 
         let v1auth = v1.grouped(ApplePassMiddleware<P>())
@@ -200,7 +203,7 @@ extension PassesServiceCustom {
         var serialNumbers: [String] = []
         var maxDate = Date.distantPast
         for registration in registrations {
-            let pass = registration.pass
+            let pass = try await registration._$pass.get(on: req.db)
             try serialNumbers.append(pass.requireID().uuidString)
             if let updatedAt = pass.updatedAt, updatedAt > maxDate {
                 maxDate = updatedAt
@@ -276,12 +279,12 @@ extension PassesServiceCustom {
         return .ok
     }
 
-    fileprivate func logError(req: Request) async throws -> HTTPStatus {
-        logger?.debug("Called logError")
+    fileprivate func logMessage(req: Request) async throws -> HTTPStatus {
+        logger?.debug("Called logMessage")
 
-        let body: ErrorLogDTO
+        let body: LogEntryDTO
         do {
-            body = try req.content.decode(ErrorLogDTO.self)
+            body = try req.content.decode(LogEntryDTO.self)
         } catch {
             throw Abort(.badRequest)
         }
@@ -301,10 +304,10 @@ extension PassesServiceCustom {
             throw Abort(.badRequest)
         }
         guard
-            let pass = try await P.query(on: req.db)
+            try await P.query(on: req.db)
                 .filter(\._$id == id)
                 .filter(\._$typeIdentifier == PD.typeIdentifier)
-                .first()
+                .first() != nil
         else {
             throw Abort(.notFound)
         }
@@ -319,10 +322,8 @@ extension PassesServiceCustom {
         userPersonalization.postalCode = userInfo.requiredPersonalizationInfo.postalCode
         userPersonalization.isoCountryCode = userInfo.requiredPersonalizationInfo.isoCountryCode
         userPersonalization.phoneNumber = userInfo.requiredPersonalizationInfo.phoneNumber
+        userPersonalization._$pass.id = id
         try await userPersonalization.create(on: req.db)
-
-        pass._$userPersonalization.id = try userPersonalization.requireID()
-        try await pass.update(on: req.db)
 
         guard let token = userInfo.personalizationToken.data(using: .utf8) else {
             throw Abort(.internalServerError)
@@ -331,7 +332,7 @@ extension PassesServiceCustom {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/octet-stream")
         headers.add(name: .contentTransferEncoding, value: "binary")
-        return try Response(status: .ok, headers: headers, body: Response.Body(data: self.signature(for: token)))
+        return try Response(status: .ok, headers: headers, body: Response.Body(data: self.builder.signature(for: token)))
     }
 
     // MARK: - Push Routes
@@ -422,72 +423,6 @@ extension PassesServiceCustom {
 
 // MARK: - pkpass file generation
 extension PassesServiceCustom {
-    private func manifest(for directory: URL) throws -> Data {
-        var manifest: [String: String] = [:]
-
-        let paths = try FileManager.default.subpathsOfDirectory(atPath: directory.path)
-        for relativePath in paths {
-            let file = URL(fileURLWithPath: relativePath, relativeTo: directory)
-            guard !file.hasDirectoryPath else {
-                continue
-            }
-
-            let hash = try Insecure.SHA1.hash(data: Data(contentsOf: file))
-            manifest[relativePath] = hash.map { "0\(String($0, radix: 16))".suffix(2) }.joined()
-        }
-
-        return try encoder.encode(manifest)
-    }
-
-    // We use this function to sign the personalization token too.
-    private func signature(for manifest: Data) throws -> Data {
-        // Swift Crypto doesn't support encrypted PEM private keys, so we have to use OpenSSL for that.
-        if let pemPrivateKeyPassword {
-            guard FileManager.default.fileExists(atPath: self.openSSLURL.path) else {
-                throw WalletError.noOpenSSLExecutable
-            }
-
-            let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-            defer { try? FileManager.default.removeItem(at: dir) }
-
-            try manifest.write(to: dir.appendingPathComponent("manifest.json"))
-            try self.pemWWDRCertificate.write(to: dir.appendingPathComponent("wwdr.pem"), atomically: true, encoding: .utf8)
-            try self.pemCertificate.write(to: dir.appendingPathComponent("certificate.pem"), atomically: true, encoding: .utf8)
-            try self.pemPrivateKey.write(to: dir.appendingPathComponent("private.pem"), atomically: true, encoding: .utf8)
-
-            let process = Process()
-            process.currentDirectoryURL = dir
-            process.executableURL = self.openSSLURL
-            process.arguments = [
-                "smime", "-binary", "-sign",
-                "-certfile", dir.appendingPathComponent("wwdr.pem").path,
-                "-signer", dir.appendingPathComponent("certificate.pem").path,
-                "-inkey", dir.appendingPathComponent("private.pem").path,
-                "-in", dir.appendingPathComponent("manifest.json").path,
-                "-out", dir.appendingPathComponent("signature").path,
-                "-outform", "DER",
-                "-passin", "pass:\(pemPrivateKeyPassword)",
-            ]
-            try process.run()
-            process.waitUntilExit()
-
-            return try Data(contentsOf: dir.appendingPathComponent("signature"))
-        } else {
-            let signature = try CMS.sign(
-                manifest,
-                signatureAlgorithm: .sha256WithRSAEncryption,
-                additionalIntermediateCertificates: [
-                    Certificate(pemEncoded: self.pemWWDRCertificate)
-                ],
-                certificate: Certificate(pemEncoded: self.pemCertificate),
-                privateKey: .init(pemEncoded: self.pemPrivateKey),
-                signingTime: Date()
-            )
-            return Data(signature)
-        }
-    }
-
     /// Generates the pass content bundle for a given pass.
     ///
     /// - Parameters:
@@ -496,47 +431,11 @@ extension PassesServiceCustom {
     ///
     /// - Returns: The generated pass content as `Data`.
     public func build(pass: PD, on db: any Database) async throws -> Data {
-        let filesDirectory = try await URL(fileURLWithPath: pass.template(on: db), isDirectory: true)
-        guard
-            (try? filesDirectory.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
-        else {
-            throw WalletError.noSourceFiles
-        }
-
-        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.copyItem(at: filesDirectory, to: tempDir)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        var files: [ArchiveFile] = []
-
-        let passJSON = try await self.encoder.encode(pass.passJSON(on: db))
-        try passJSON.write(to: tempDir.appendingPathComponent("pass.json"))
-        files.append(ArchiveFile(filename: "pass.json", data: passJSON))
-
-        // Pass Personalization
-        if let personalizationJSON = try await pass.personalizationJSON(on: db) {
-            let personalizationJSONData = try self.encoder.encode(personalizationJSON)
-            try personalizationJSONData.write(to: tempDir.appendingPathComponent("personalization.json"))
-            files.append(ArchiveFile(filename: "personalization.json", data: personalizationJSONData))
-        }
-
-        let manifest = try self.manifest(for: tempDir)
-        files.append(ArchiveFile(filename: "manifest.json", data: manifest))
-        try files.append(ArchiveFile(filename: "signature", data: self.signature(for: manifest)))
-
-        let paths = try FileManager.default.subpathsOfDirectory(atPath: filesDirectory.path)
-        for relativePath in paths {
-            let file = URL(fileURLWithPath: relativePath, relativeTo: tempDir)
-            guard !file.hasDirectoryPath else {
-                continue
-            }
-
-            try files.append(ArchiveFile(filename: relativePath, data: Data(contentsOf: file)))
-        }
-
-        let zipFile = tempDir.appendingPathComponent("\(UUID().uuidString).pkpass")
-        try Zip.zipData(archiveFiles: files, zipFilePath: zipFile)
-        return try Data(contentsOf: zipFile)
+        try await self.builder.build(
+            pass: pass.passJSON(on: db),
+            sourceFilesDirectoryPath: pass.sourceFilesDirectoryPath(on: db),
+            personalization: pass.personalizationJSON(on: db)
+        )
     }
 
     /// Generates a bundle of passes to enable your user to download multiple passes at once.
@@ -552,7 +451,7 @@ extension PassesServiceCustom {
     /// - Returns: The bundle of passes as `Data`.
     public func build(passes: [PD], on db: any Database) async throws -> Data {
         guard passes.count > 1 && passes.count <= 10 else {
-            throw WalletError.invalidNumberOfPasses
+            throw PassesError.invalidNumberOfPasses
         }
 
         var files: [ArchiveFile] = []

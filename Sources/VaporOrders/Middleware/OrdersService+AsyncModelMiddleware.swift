@@ -1,4 +1,5 @@
 import FluentKit
+import FluentOrders
 import Foundation
 
 extension OrdersService: AsyncModelMiddleware {

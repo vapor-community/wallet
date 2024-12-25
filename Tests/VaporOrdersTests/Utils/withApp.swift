@@ -1,9 +1,11 @@
 import FluentKit
+import FluentOrders
 import FluentSQLiteDriver
-import VaporOrders
+import Orders
 import PassKit
 import Testing
 import Vapor
+import VaporOrders
 import Zip
 
 func withApp(
