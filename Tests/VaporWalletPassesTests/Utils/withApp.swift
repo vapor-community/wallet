@@ -16,7 +16,7 @@ func withApp(
         try #require(isLoggingConfigured)
 
         app.databases.use(.sqlite(.memory), as: .sqlite)
-        PassesService<PassData>.register(migrations: app.migrations)
+        PassesService<PassData>.register(migrations: app.migrations, withPersonalization: true)
         app.migrations.add(CreatePassData())
         try await app.autoMigrate()
 

@@ -95,13 +95,17 @@ public final class PassesService<PD: PassDataModel>: Sendable where Pass == PD.P
 
     /// Adds the migrations for Apple Wallet passes models.
     ///
-    /// - Parameter migrations: The `Migrations` object to add the migrations to.
-    public static func register(migrations: Migrations) {
-        migrations.add(CreatePersonalization())
+    /// - Parameters:
+    ///   - migrations: The `Migrations` object to add the migrations to.
+    ///   - withPersonalization: Whether to include the migration for the `Personalization` model. Defaults to `false`.
+    public static func register(migrations: Migrations, withPersonalization: Bool = false) {
         migrations.add(CreatePass())
         migrations.add(CreateDevice())
         migrations.add(CreatePassesRegistration())
         migrations.add(CreateLogEntry())
+        if withPersonalization {
+            migrations.add(CreatePersonalization())
+        }
     }
 
     /// Sends push notifications for a given pass.
