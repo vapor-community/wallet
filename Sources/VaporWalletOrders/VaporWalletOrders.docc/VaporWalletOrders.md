@@ -4,8 +4,7 @@ Create, distribute, and update orders in Apple Wallet with Vapor.
 
 ## Overview
 
-The VaporWalletOrders framework provides a set of tools to help you create, build, and distribute orders trackable in the Apple Wallet app using a Vapor server.
-It also provides a way to update orders after they have been distributed, using APNs, and models to store order and device data.
+The `VaporWalletOrders` framework provides a set of tools to help you create, build, distribute and update orders trackable in the Apple Wallet app using a Vapor server.
 
 For information on Apple Wallet orders, see the [Apple Developer Documentation](https://developer.apple.com/documentation/walletorders).
 
@@ -14,22 +13,5 @@ For information on Apple Wallet orders, see the [Apple Developer Documentation](
 ### Essentials
 
 - <doc:GettingStarted>
-- ``OrderDataModel``
-- ``OrderJSON``
-
-### Building and Distribution
-
 - ``OrdersService``
 - ``OrdersServiceCustom``
-
-### Concrete Models
-
-- ``Order``
-- ``OrdersRegistration``
-- ``OrdersDevice``
-- ``OrdersErrorLog``
-
-### Abstract Models
-
-- ``OrderModel``
-- ``OrdersRegistrationModel``

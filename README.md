@@ -30,7 +30,7 @@ Use the SPM string to easily include the dependendency in your `Package.swift` f
 
 ## 🎟️ Wallet Passes
 
-The VaporWalletPasses framework provides a set of tools to help you create, build, and distribute digital passes for the Apple Wallet app using a Vapor server.
+The `VaporWalletPasses` framework provides a set of tools to help you create, build, and distribute digital passes for the Apple Wallet app using a Vapor server.
 It also provides a way to update passes after they have been distributed, using APNs, and models to store pass and device data.
 
 Add the `VaporWalletPasses` product to your target's dependencies:
@@ -45,7 +45,7 @@ For information on Apple Wallet passes, see the [Apple Developer Documentation](
 
 ## 📦 Wallet Orders
 
-The VaporWalletOrders framework provides a set of tools to help you create, build, and distribute orders that users can track and manage in Apple Wallet using a Vapor server.
+The `VaporWalletOrders` framework provides a set of tools to help you create, build, and distribute orders that users can track and manage in Apple Wallet using a Vapor server.
 It also provides a way to update orders after they have been distributed, using APNs, and models to store order and device data.
 
 Add the `VaporWalletOrders` product to your target's dependencies:

@@ -4,22 +4,23 @@ Create the pass data model, build a pass for Apple Wallet and distribute it with
 
 ## Overview
 
-The VaporWalletPasses framework provides models to save all the basic information for passes, user devices and their registration to each pass.
+The `FluentWalletPasses` framework provides models to save all the basic information for passes, user devices and their registration to each pass.
 For all the other custom data needed to generate the pass, such as the barcodes, locations, etc., you have to create your own model and its model middleware to handle the creation and update of passes.
 The pass data model will be used to generate the `pass.json` file contents.
 
 The pass you distribute to a user is a signed bundle that contains the `pass.json` file, images and optional localizations.
-The VaporWalletPasses framework provides the ``PassesService`` class that handles the creation of the pass JSON file and the signing of the pass bundle.
+The `VaporWalletPasses` framework provides the ``PassesService`` class that handles the creation of the pass JSON file and the signing of the pass bundle.
 The ``PassesService`` class also provides methods to send push notifications to all devices registered when you update a pass, and all the routes that Apple Wallet uses to retrieve passes.
 
 ### Implement the Pass Data Model
 
-Your data model should contain all the fields that you store for your pass, as well as a foreign key to ``Pass``, the pass model offered by the VaporWalletPasses framework, and a pass type identifier that's registered with Apple.
+Your data model should contain all the fields that you store for your pass, as well as a foreign key to `Pass`, the pass model offered by the `FluentWalletPasses` framework, and a pass type identifier that's registered with Apple.
 
 ```swift
 import Fluent
+import FluentWalletPasses
 import Foundation
-import VaporWalletPasses
+import WalletPasses
 
 final class PassData: PassDataModel, @unchecked Sendable {
     static let schema = "pass_data"
@@ -41,7 +42,7 @@ final class PassData: PassDataModel, @unchecked Sendable {
 
     // Add any other field relative to your app, such as a location, a date, etc.
 
-    init() { }
+    init() {}
 }
 
 struct CreatePassData: AsyncMigration {
@@ -60,9 +61,9 @@ struct CreatePassData: AsyncMigration {
 }
 ```
 
-You also have to define two methods in the ``PassDataModel``:
-- ``PassDataModel/passJSON(on:)``, where you'll have to return a `struct` that conforms to ``PassJSON/Properties``.
-- ``PassDataModel/template(on:)``, where you'll have to return the path to a folder containing the pass files.
+You also have to define two methods in the `PassDataModel`:
+- `passJSON(on db: any Database)`, where you'll have to return a `struct` that conforms to `PassJSON.Properties`.
+- `sourceFilesDirectoryPath(on db: any Database)`, where you'll have to return the path to a folder containing the pass files.
 
 ```swift
 extension PassData {
@@ -70,7 +71,7 @@ extension PassData {
         try await PassJSONData(data: self, pass: self.$pass.get(on: db))
     }
 
-    func template(on db: any Database) async throws -> String {
+    func sourceFilesDirectoryPath(on db: any Database) async throws -> String {
         // The location might vary depending on the type of pass.
         "SourceFiles/Passes/"
     }
@@ -86,13 +87,14 @@ The implementation will be based on your type of SQL database, as there's not ye
 
 ### Model the pass.json contents
 
-Create a `struct` that implements ``PassJSON/Properties`` which will contain all the fields for the generated `pass.json` file.
-Create an initializer that takes your custom pass data, the ``Pass`` and everything else you may need.
+Create a `struct` that implements `PassJSON.Properties` which will contain all the fields for the generated `pass.json` file.
+Create an initializer that takes your custom pass data, the `Pass` and everything else you may need.
 
 > Tip: For information on the various keys available see the [documentation](https://developer.apple.com/documentation/walletpasses/pass). See also [this guide](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/index.html#//apple_ref/doc/uid/TP40012195-CH1-SW1) for some help.
 
 ```swift
-import VaporWalletPasses
+import FluentWalletPasses
+import WalletPasses
 
 struct PassJSONData: PassJSON.Properties {
     let description: String
@@ -186,10 +188,11 @@ GET https://example.com/api/passes/v1/push/{passTypeIdentifier}/{passSerial} HTT
 
 ### Custom Implementation of PassesService
 
-If you don't like the schema names provided by default, you can create your own models conforming to ``PassModel``, ``UserPersonalizationModel``, `DeviceModel`, ``PassesRegistrationModel`` and `ErrorLogModel` and instantiate the generic ``PassesServiceCustom``, providing it your model types.
+If you don't like the schema names provided by default, you can create your own models conforming to `PassModel`, `PersonalizationModel`, `DeviceModel`, `PassesRegistrationModel` and `LogEntryModel` and instantiate the generic ``PassesServiceCustom``, providing it your model types.
 
 ```swift
 import Fluent
+import FluentWalletPasses
 import Vapor
 import VaporWalletPasses
 
@@ -198,10 +201,10 @@ public func configure(_ app: Application) async throws {
     let passesService = try PassesServiceCustom<
         PassData,
         MyPassType,
-        MyUserPersonalizationType,
+        MyPersonalizationType,
         MyDeviceType,
         MyPassesRegistrationType,
-        MyErrorLogType
+        MyLogEntryType
     >(
         app: app,
         pemWWDRCertificate: Environment.get("PEM_WWDR_CERTIFICATE")!,
@@ -225,8 +228,8 @@ PassesService<PassData>.register(migrations: app.migrations)
 
 This framework provides a model middleware to handle the creation and update of the pass data model.
 
-When you create a ``PassDataModel`` object, it will automatically create a ``PassModel`` object with a random auth token and the correct type identifier and link it to the pass data model.
-When you update a pass data model, it will update the ``PassModel`` object and send a push notification to all devices registered to that pass.
+When you create a `PassDataModel` object, it will automatically create a `PassModel` object with a random auth token and the correct type identifier and link it to the pass data model.
+When you update a pass data model, it will update the `PassModel` object and send a push notification to all devices registered to that pass.
 
 You can register it like so (either with a ``PassesService`` or a ``PassesServiceCustom``):
 
@@ -234,7 +237,7 @@ You can register it like so (either with a ``PassesService`` or a ``PassesServic
 app.databases.middleware.use(passesService, on: .psql)
 ```
 
-> Note: If you don't like the default implementation of the model middleware, it is highly recommended that you create your own. But remember: whenever your pass data changes, you must update the ``Pass/updatedAt`` time of the linked ``Pass`` so that Wallet knows to retrieve a new pass.
+> Note: If you don't like the default implementation of the model middleware, it is highly recommended that you create your own. But remember: whenever your pass data changes, you must update the `Pass.updatedAt` time of the linked `Pass` so that Wallet knows to retrieve a new pass.
 
 ### Generate the Pass Content
 

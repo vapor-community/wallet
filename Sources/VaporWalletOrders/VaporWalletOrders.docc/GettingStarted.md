@@ -4,22 +4,23 @@ Create the order data model, build an order for Apple Wallet and distribute it w
 
 ## Overview
 
-The VaporWalletOrders framework provides models to save all the basic information for orders, user devices and their registration to each order.
+The `FluentWalletOrders` framework provides models to save all the basic information for orders, user devices and their registration to each order.
 For all the other custom data needed to generate the order, such as the barcodes, merchant info, etc., you have to create your own model and its model middleware to handle the creation and update of order.
 The order data model will be used to generate the `order.json` file contents.
 
 The order you distribute to a user is a signed bundle that contains the `order.json` file, images, and optional localizations.
-The VaporWalletOrders framework provides the ``OrdersService`` class that handles the creation of the order JSON file and the signing of the order bundle.
+The `VaporWalletOrders` framework provides the ``OrdersService`` class that handles the creation of the order JSON file and the signing of the order bundle.
 The ``OrdersService`` class also provides methods to send push notifications to all devices registered when you update an order, and all the routes that Apple Wallet uses to retrieve orders.
 
 ### Implement the Order Data Model
 
-Your data model should contain all the fields that you store for your order, as well as a foreign key to ``Order``, the order model offered by the VaporWalletOrders framework, and a order type identifier that's registered with Apple.
+Your data model should contain all the fields that you store for your order, as well as a foreign key to `Order`, the order model offered by the `FluentWalletOrders` framework, and a order type identifier that's registered with Apple.
 
 ```swift
 import Fluent
+import FluentWalletOrders
 import Foundation
-import VaporWalletOrders
+import WalletOrders
 
 final class OrderData: OrderDataModel, @unchecked Sendable {
     static let schema = "order_data"
@@ -56,9 +57,9 @@ struct CreateOrderData: AsyncMigration {
 }
 ```
 
-You also have to define two methods in the ``OrderDataModel``:
-- ``OrderDataModel/orderJSON(on:)``, where you'll have to return a `struct` that conforms to ``OrderJSON/Properties``.
-- ``OrderDataModel/template(on:)``, where you'll have to return the path to a folder containing the order files.
+You also have to define two methods in the `OrderDataModel`:
+- `orderJSON(on db: any Database)`, where you'll have to return a `struct` that conforms to `OrderJSON.Properties`.
+- `sourceFilesDirectoryPath(on db: any Database)`, where you'll have to return the path to a folder containing the order files.
 
 ```swift
 extension OrderData {
@@ -66,7 +67,7 @@ extension OrderData {
         try await OrderJSONData(data: self, order: self.$order.get(on: db))
     }
 
-    func template(on db: any Database) async throws -> String {
+    func sourceFilesDirectoryPath(on db: any Database) async throws -> String {
         // The location might vary depending on the type of order.
         "SourceFiles/Orders/"
     }
@@ -82,13 +83,14 @@ The implementation will be based on your type of SQL database, as there's not ye
 
 ### Model the order.json contents
 
-Create a `struct` that implements ``OrderJSON/Properties`` which will contain all the fields for the generated `order.json` file.
-Create an initializer that takes your custom order data, the ``Order`` and everything else you may need.
+Create a `struct` that implements `OrderJSON.Properties` which will contain all the fields for the generated `order.json` file.
+Create an initializer that takes your custom order data, the `Order` and everything else you may need.
 
 > Tip: For information on the various keys available see the [documentation](https://developer.apple.com/documentation/walletorders/order).
 
 ```swift
-import VaporWalletOrders
+import FluentWalletOrders
+import WalletOrders
 
 struct OrderJSONData: OrderJSON.Properties {
     let schemaVersion = OrderJSON.SchemaVersion.v1
@@ -162,10 +164,11 @@ GET https://example.com/api/orders/v1/push/{orderTypeIdentifier}/{orderIdentifie
 
 ### Custom Implementation of OrdersService
 
-If you don't like the schema names provided by default, you can create your own models conforming to ``OrderModel``, `DeviceModel`, ``OrdersRegistrationModel`` and `ErrorLogModel` and instantiate the generic ``OrdersServiceCustom``, providing it your model types.
+If you don't like the schema names provided by default, you can create your own models conforming to `OrderModel`, `DeviceModel`, `OrdersRegistrationModel` and `LogEntryModel` and instantiate the generic ``OrdersServiceCustom``, providing it your model types.
 
 ```swift
 import Fluent
+import FluentWalletOrders
 import Vapor
 import VaporWalletOrders
 
@@ -200,8 +203,8 @@ OrdersService<OrderData>.register(migrations: app.migrations)
 
 This framework provides a model middleware to handle the creation and update of the order data model.
 
-When you create an ``OrderDataModel`` object, it will automatically create an ``OrderModel`` object with a random auth token and the correct type identifier and link it to the order data model.
-When you update an order data model, it will update the ``OrderModel`` object and send a push notification to all devices registered to that order.
+When you create an `OrderDataModel` object, it will automatically create an `OrderModel` object with a random auth token and the correct type identifier and link it to the order data model.
+When you update an order data model, it will update the `OrderModel` object and send a push notification to all devices registered to that order.
 
 You can register it like so (either with an ``OrdersService`` or an ``OrdersServiceCustom``):
 
@@ -209,7 +212,7 @@ You can register it like so (either with an ``OrdersService`` or an ``OrdersServ
 app.databases.middleware.use(ordersService, on: .psql)
 ```
 
-> Note: If you don't like the default implementation of the model middleware, it is highly recommended that you create your own. But remember: whenever your order data changes, you must update the ``Order/updatedAt`` time of the linked ``Order`` so that Wallet knows to retrieve a new order.
+> Note: If you don't like the default implementation of the model middleware, it is highly recommended that you create your own. But remember: whenever your order data changes, you must update the `Order.updatedAt` time of the linked `Order` so that Wallet knows to retrieve a new order.
 
 ### Generate the Order Content
 

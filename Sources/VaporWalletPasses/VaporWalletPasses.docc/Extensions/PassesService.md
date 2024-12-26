@@ -6,7 +6,7 @@
 
 - ``build(pass:on:)``
 - ``build(passes:on:)``
-- ``register(migrations:)``
+- ``register(migrations:withPersonalization:)``
 
 ### Push Notifications
 
