@@ -164,7 +164,7 @@ GET https://example.com/api/orders/v1/push/{orderTypeIdentifier}/{orderIdentifie
 
 ### Custom Implementation of OrdersService
 
-If you don't like the schema names provided by default, you can create your own models conforming to `OrderModel`, `DeviceModel`, `OrdersRegistrationModel` and `LogEntryModel` and instantiate the generic ``OrdersServiceCustom``, providing it your model types.
+If you don't like the schema names provided by default, you can create your own models conforming to `OrderModel`, `DeviceModel` and `OrdersRegistrationModel` and instantiate the generic ``OrdersServiceCustom``, providing it your model types.
 
 ```swift
 import Fluent
@@ -178,8 +178,7 @@ public func configure(_ app: Application) async throws {
         OrderData,
         MyOrderType,
         MyDeviceType,
-        MyOrdersRegistrationType,
-        MyErrorLogType
+        MyOrdersRegistrationType
     >(
         app: app,
         pemWWDRCertificate: Environment.get("PEM_WWDR_CERTIFICATE")!,

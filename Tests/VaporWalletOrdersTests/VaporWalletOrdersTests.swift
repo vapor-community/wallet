@@ -275,44 +275,24 @@ struct VaporWalletOrdersTests {
         }
     }
 
-    @Test("Error Logging")
+    @Test("Log a Message")
     func errorLog() async throws {
         try await withApp { app, ordersService in
-            let log1 = "Error 1"
-            let log2 = "Error 2"
-
             try await app.test(
                 .POST,
                 "\(ordersURI)log",
                 beforeRequest: { req async throws in
-                    try req.content.encode(LogEntryDTO(logs: [log1, log2]))
+                    try req.content.encode(LogEntryDTO(logs: ["Error 1", "Error 2"]))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
                 }
             )
 
-            let logs = try await LogEntry.query(on: app.db).all()
-            #expect(logs.count == 2)
-            #expect(logs[0].message == log1)
-            #expect(logs[1]._$message.value == log2)
-
             // Test call with no DTO
             try await app.test(
                 .POST,
                 "\(ordersURI)log",
-                afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
-                }
-            )
-
-            // Test call with empty logs
-            try await app.test(
-                .POST,
-                "\(ordersURI)log",
-                beforeRequest: { req async throws in
-                    try req.content.encode(LogEntryDTO(logs: []))
-                },
                 afterResponse: { res async throws in
                     #expect(res.status == .badRequest)
                 }

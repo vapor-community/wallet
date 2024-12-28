@@ -4,7 +4,7 @@ import Vapor
 
 /// The main class that handles Wallet orders.
 public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD.OrderType {
-    private let service: OrdersServiceCustom<OD, Order, Device, OrdersRegistration, LogEntry>
+    private let service: OrdersServiceCustom<OD, Order, OrdersDevice, OrdersRegistration>
 
     /// Initializes the service and registers all the routes required for Apple Wallet to work.
     ///
@@ -55,9 +55,8 @@ public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD
     /// - Parameter migrations: The `Migrations` object to add the migrations to.
     public static func register(migrations: Migrations) {
         migrations.add(CreateOrder())
-        migrations.add(CreateDevice())
+        migrations.add(CreateOrdersDevice())
         migrations.add(CreateOrdersRegistration())
-        migrations.add(CreateLogEntry())
     }
 
     /// Sends push notifications for a given order.

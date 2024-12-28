@@ -18,14 +18,12 @@ import Zip
 /// - User Personalization Type
 /// - Device Type
 /// - Registration Type
-/// - Error Log Type
 public final class PassesServiceCustom<
     PD: PassDataModel,
     P: PassModel,
     U: PersonalizationModel,
     D: DeviceModel,
-    R: PassesRegistrationModel,
-    E: LogEntryModel
+    R: PassesRegistrationModel
 >: Sendable where P == PD.PassType, P == R.PassType, D == R.DeviceType, U.PassType == P {
     private unowned let app: Application
     private let logger: Logger?
@@ -279,21 +277,21 @@ extension PassesServiceCustom {
     }
 
     fileprivate func logMessage(req: Request) async throws -> HTTPStatus {
-        logger?.debug("Called logMessage")
+        if let logger {
+            let body: LogEntryDTO
+            do {
+                body = try req.content.decode(LogEntryDTO.self)
+            } catch {
+                throw Abort(.badRequest)
+            }
 
-        let body: LogEntryDTO
-        do {
-            body = try req.content.decode(LogEntryDTO.self)
-        } catch {
-            throw Abort(.badRequest)
+            for log in body.logs {
+                logger.notice("VaporWalletPasses: \(log)")
+            }
+            return .ok
+        } else {
+            return .badRequest
         }
-
-        guard !body.logs.isEmpty else {
-            throw Abort(.badRequest)
-        }
-
-        try await body.logs.map(E.init(message:)).create(on: req.db)
-        return .ok
     }
 
     fileprivate func personalizedPass(req: Request) async throws -> Response {

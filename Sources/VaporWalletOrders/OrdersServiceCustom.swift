@@ -17,13 +17,11 @@ import Zip
 /// - Order Type
 /// - Device Type
 /// - Registration Type
-/// - Error Log Type
 public final class OrdersServiceCustom<
     OD: OrderDataModel,
     O: OrderModel,
     D: DeviceModel,
-    R: OrdersRegistrationModel,
-    E: LogEntryModel
+    R: OrdersRegistrationModel
 >: Sendable where O == OD.OrderType, O == R.OrderType, D == R.DeviceType {
     private unowned let app: Application
     private let logger: Logger?
@@ -252,21 +250,21 @@ extension OrdersServiceCustom {
     }
 
     fileprivate func logMessage(req: Request) async throws -> HTTPStatus {
-        logger?.debug("Called logMessage")
+        if let logger {
+            let body: LogEntryDTO
+            do {
+                body = try req.content.decode(LogEntryDTO.self)
+            } catch {
+                throw Abort(.badRequest)
+            }
 
-        let body: LogEntryDTO
-        do {
-            body = try req.content.decode(LogEntryDTO.self)
-        } catch {
-            throw Abort(.badRequest)
+            for log in body.logs {
+                logger.notice("VaporWalletOrders: \(log)")
+            }
+            return .ok
+        } else {
+            return .badRequest
         }
-
-        guard !body.logs.isEmpty else {
-            throw Abort(.badRequest)
-        }
-
-        try await body.logs.map(E.init(message:)).create(on: req.db)
-        return .ok
     }
 
     fileprivate func unregisterDevice(req: Request) async throws -> HTTPStatus {
