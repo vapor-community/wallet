@@ -103,7 +103,7 @@ struct VaporWalletOrdersTests {
                     "If-Modified-Since": "0",
                 ],
                 afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
+                    #expect(res.status == .unauthorized)
                 }
             )
 
@@ -192,7 +192,7 @@ struct VaporWalletOrdersTests {
                     try req.content.encode(RegistrationDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
+                    #expect(res.status == .unauthorized)
                 }
             )
 
@@ -260,7 +260,7 @@ struct VaporWalletOrdersTests {
                 "\(ordersURI)devices/\(deviceLibraryIdentifier)/registrations/\(order.typeIdentifier)/\("not-a-uuid")",
                 headers: ["Authorization": "AppleOrder \(order.authenticationToken)"],
                 afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
+                    #expect(res.status == .unauthorized)
                 }
             )
 

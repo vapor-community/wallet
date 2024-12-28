@@ -171,7 +171,7 @@ struct VaporWalletPassesTests {
                     "If-Modified-Since": "0",
                 ],
                 afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
+                    #expect(res.status == .unauthorized)
                 }
             )
 
@@ -328,7 +328,7 @@ struct VaporWalletPassesTests {
                     try req.content.encode(RegistrationDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
+                    #expect(res.status == .unauthorized)
                 }
             )
 
@@ -396,7 +396,7 @@ struct VaporWalletPassesTests {
                 "\(passesURI)devices/\(deviceLibraryIdentifier)/registrations/\(pass.typeIdentifier)/\("not-a-uuid")",
                 headers: ["Authorization": "ApplePass \(pass.authenticationToken)"],
                 afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
+                    #expect(res.status == .unauthorized)
                 }
             )
 
