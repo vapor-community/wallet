@@ -1,6 +1,6 @@
 <div align="center">
     <img src="https://avatars.githubusercontent.com/u/26165732?s=200&v=4" width="100" height="100" alt="avatar" />
-    <h1>PassKit</h1>
+    <h1>Vapor Wallet</h1>
     <a href="https://swiftpackageindex.com/vapor-community/PassKit/documentation">
         <img src="https://design.vapor.codes/images/readthedocs.svg" alt="Documentation">
     </a>
@@ -36,7 +36,7 @@ It also provides a way to update passes after they have been distributed, using 
 Add the `VaporWalletPasses` product to your target's dependencies:
 
 ```swift
-.product(name: "VaporWalletPasses", package: "PassKit")
+.product(name: "VaporWalletPasses", package: "wallet")
 ```
 
 See the framework's [documentation](https://swiftpackageindex.com/vapor-community/PassKit/documentation/passes) for information and guides on how to use it.
@@ -51,7 +51,7 @@ It also provides a way to update orders after they have been distributed, using 
 Add the `VaporWalletOrders` product to your target's dependencies:
 
 ```swift
-.product(name: "VaporWalletOrders", package: "PassKit")
+.product(name: "VaporWalletOrders", package: "wallet")
 ```
 
 See the framework's [documentation](https://swiftpackageindex.com/vapor-community/PassKit/documentation/orders) for information and guides on how to use it.

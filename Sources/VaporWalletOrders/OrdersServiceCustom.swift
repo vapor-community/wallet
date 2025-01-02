@@ -3,7 +3,7 @@ import APNSCore
 import Fluent
 import FluentWalletOrders
 import NIOSSL
-import PassKit
+import VaporWallet
 import Vapor
 import VaporAPNS
 import WalletOrders

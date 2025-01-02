@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "PassKit",
+    name: "wallet",
     platforms: [
         .macOS(.v13)
     ],
@@ -11,28 +11,28 @@ let package = Package(
         .library(name: "VaporWalletOrders", targets: ["VaporWalletOrders"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/fpseverino/swift-wallet.git", from: "0.2.0"),
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.108.0"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.111.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.12.0"),
         .package(url: "https://github.com/fpseverino/fluent-wallet.git", branch: "main"),
         .package(url: "https://github.com/vapor/apns.git", from: "4.2.0"),
         // used in tests
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.8.0"),
+        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
     ],
     targets: [
         .target(
-            name: "PassKit",
+            name: "VaporWallet",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
             ],
             swiftSettings: swiftSettings
         ),
+        // MARK: - Wallet Passes
         .target(
             name: "VaporWalletPasses",
             dependencies: [
-                .target(name: "PassKit"),
-                .product(name: "WalletPasses", package: "swift-wallet"),
+                .target(name: "VaporWallet"),
                 .product(name: "FluentWalletPasses", package: "fluent-wallet"),
                 .product(name: "VaporAPNS", package: "apns"),
             ],
@@ -50,11 +50,11 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
+        // MARK: - Wallet Orders
         .target(
             name: "VaporWalletOrders",
             dependencies: [
-                .target(name: "PassKit"),
-                .product(name: "WalletOrders", package: "swift-wallet"),
+                .target(name: "VaporWallet"),
                 .product(name: "FluentWalletOrders", package: "fluent-wallet"),
                 .product(name: "VaporAPNS", package: "apns"),
             ],

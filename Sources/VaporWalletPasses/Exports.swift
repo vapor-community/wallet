@@ -1,1 +1,1 @@
-@_exported import PassKit
+@_exported import VaporWallet
