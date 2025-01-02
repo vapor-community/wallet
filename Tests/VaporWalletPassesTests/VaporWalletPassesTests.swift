@@ -289,7 +289,7 @@ struct VaporWalletPassesTests {
                 .POST,
                 "\(passesURI)devices/\(deviceLibraryIdentifier)/registrations/\(pass.typeIdentifier)/\(pass.requireID())",
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .unauthorized)
@@ -302,7 +302,7 @@ struct VaporWalletPassesTests {
                 "\(passesURI)devices/\(deviceLibraryIdentifier)/registrations/\("pass.com.example.NotFound")/\(UUID().uuidString)",
                 headers: ["Authorization": "ApplePass \(pass.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .notFound)
@@ -325,7 +325,7 @@ struct VaporWalletPassesTests {
                 "\(passesURI)devices/\(deviceLibraryIdentifier)/registrations/\(pass.typeIdentifier)/\("not-a-uuid")",
                 headers: ["Authorization": "ApplePass \(pass.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .unauthorized)
@@ -337,7 +337,7 @@ struct VaporWalletPassesTests {
                 "\(passesURI)devices/\(deviceLibraryIdentifier)/registrations/\(pass.typeIdentifier)/\(pass.requireID())",
                 headers: ["Authorization": "ApplePass \(pass.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .created)
@@ -350,7 +350,7 @@ struct VaporWalletPassesTests {
                 "\(passesURI)devices/\(deviceLibraryIdentifier)/registrations/\(pass.typeIdentifier)/\(pass.requireID())",
                 headers: ["Authorization": "ApplePass \(pass.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -361,7 +361,7 @@ struct VaporWalletPassesTests {
                 .GET,
                 "\(passesURI)devices/\(deviceLibraryIdentifier)/registrations/\(pass.typeIdentifier)?passesUpdatedSince=0",
                 afterResponse: { res async throws in
-                    let passes = try res.content.decode(PassesForDeviceDTO.self)
+                    let passes = try res.content.decode(SerialNumbersDTO.self)
                     #expect(passes.serialNumbers.count == 1)
                     let passID = try pass.requireID()
                     #expect(passes.serialNumbers[0] == passID.uuidString)
@@ -418,7 +418,7 @@ struct VaporWalletPassesTests {
                 .POST,
                 "\(passesURI)log",
                 beforeRequest: { req async throws in
-                    try req.content.encode(LogEntryDTO(logs: ["Error 1", "Error 2"]))
+                    try req.content.encode(LogEntriesDTO(logs: ["Error 1", "Error 2"]))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -474,7 +474,7 @@ struct VaporWalletPassesTests {
                 "\(passesURI)devices/\(deviceLibraryIdentifier)/registrations/\(pass.typeIdentifier)/\(pass.requireID())",
                 headers: ["Authorization": "ApplePass \(pass.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .created)

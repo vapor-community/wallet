@@ -153,7 +153,7 @@ struct VaporWalletOrdersTests {
                 .POST,
                 "\(ordersURI)devices/\(deviceLibraryIdentifier)/registrations/\(order.typeIdentifier)/\(order.requireID())",
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .unauthorized)
@@ -166,7 +166,7 @@ struct VaporWalletOrdersTests {
                 "\(ordersURI)devices/\(deviceLibraryIdentifier)/registrations/\("order.com.example.NotFound")/\(UUID().uuidString)",
                 headers: ["Authorization": "AppleOrder \(order.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .notFound)
@@ -189,7 +189,7 @@ struct VaporWalletOrdersTests {
                 "\(ordersURI)devices/\(deviceLibraryIdentifier)/registrations/\(order.typeIdentifier)/\("not-a-uuid")",
                 headers: ["Authorization": "AppleOrder \(order.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .unauthorized)
@@ -201,7 +201,7 @@ struct VaporWalletOrdersTests {
                 "\(ordersURI)devices/\(deviceLibraryIdentifier)/registrations/\(order.typeIdentifier)/\(order.requireID())",
                 headers: ["Authorization": "AppleOrder \(order.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .created)
@@ -214,7 +214,7 @@ struct VaporWalletOrdersTests {
                 "\(ordersURI)devices/\(deviceLibraryIdentifier)/registrations/\(order.typeIdentifier)/\(order.requireID())",
                 headers: ["Authorization": "AppleOrder \(order.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -225,7 +225,7 @@ struct VaporWalletOrdersTests {
                 .GET,
                 "\(ordersURI)devices/\(deviceLibraryIdentifier)/registrations/\(order.typeIdentifier)?ordersModifiedSince=0",
                 afterResponse: { res async throws in
-                    let orders = try res.content.decode(OrdersForDeviceDTO.self)
+                    let orders = try res.content.decode(OrderIdentifiersDTO.self)
                     #expect(orders.orderIdentifiers.count == 1)
                     let orderID = try order.requireID()
                     #expect(orders.orderIdentifiers[0] == orderID.uuidString)
@@ -282,7 +282,7 @@ struct VaporWalletOrdersTests {
                 .POST,
                 "\(ordersURI)log",
                 beforeRequest: { req async throws in
-                    try req.content.encode(LogEntryDTO(logs: ["Error 1", "Error 2"]))
+                    try req.content.encode(LogEntriesDTO(logs: ["Error 1", "Error 2"]))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -338,7 +338,7 @@ struct VaporWalletOrdersTests {
                 "\(ordersURI)devices/\(deviceLibraryIdentifier)/registrations/\(order.typeIdentifier)/\(order.requireID())",
                 headers: ["Authorization": "AppleOrder \(order.authenticationToken)"],
                 beforeRequest: { req async throws in
-                    try req.content.encode(RegistrationDTO(pushToken: pushToken))
+                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .created)

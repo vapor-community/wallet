@@ -11,7 +11,7 @@ let package = Package(
         .library(name: "VaporWalletOrders", targets: ["VaporWalletOrders"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/fpseverino/swift-wallet.git", branch: "main"),
+        .package(url: "https://github.com/fpseverino/swift-wallet.git", from: "0.2.0"),
         .package(url: "https://github.com/vapor/vapor.git", from: "4.108.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.12.0"),
         .package(url: "https://github.com/fpseverino/fluent-wallet.git", branch: "main"),

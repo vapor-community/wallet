@@ -128,7 +128,7 @@ extension PassesServiceCustom {
 
         let pushToken: String
         do {
-            pushToken = try req.content.decode(RegistrationDTO.self).pushToken
+            pushToken = try req.content.decode(PushTokenDTO.self).pushToken
         } catch {
             throw Abort(.badRequest)
         }
@@ -177,7 +177,7 @@ extension PassesServiceCustom {
         return .created
     }
 
-    fileprivate func passesForDevice(req: Request) async throws -> PassesForDeviceDTO {
+    fileprivate func passesForDevice(req: Request) async throws -> SerialNumbersDTO {
         logger?.debug("Called passesForDevice")
 
         let deviceLibraryIdentifier = req.parameters.get("deviceLibraryIdentifier")!
@@ -207,7 +207,7 @@ extension PassesServiceCustom {
             }
         }
 
-        return PassesForDeviceDTO(with: serialNumbers, maxDate: maxDate)
+        return SerialNumbersDTO(with: serialNumbers, maxDate: maxDate)
     }
 
     fileprivate func latestVersionOfPass(req: Request) async throws -> Response {
@@ -278,9 +278,9 @@ extension PassesServiceCustom {
 
     fileprivate func logMessage(req: Request) async throws -> HTTPStatus {
         if let logger {
-            let body: LogEntryDTO
+            let body: LogEntriesDTO
             do {
-                body = try req.content.decode(LogEntryDTO.self)
+                body = try req.content.decode(LogEntriesDTO.self)
             } catch {
                 throw Abort(.badRequest)
             }

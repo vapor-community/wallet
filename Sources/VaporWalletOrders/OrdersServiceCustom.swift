@@ -165,7 +165,7 @@ extension OrdersServiceCustom {
 
         let pushToken: String
         do {
-            pushToken = try req.content.decode(RegistrationDTO.self).pushToken
+            pushToken = try req.content.decode(PushTokenDTO.self).pushToken
         } catch {
             throw Abort(.badRequest)
         }
@@ -216,7 +216,7 @@ extension OrdersServiceCustom {
         return .created
     }
 
-    fileprivate func ordersForDevice(req: Request) async throws -> OrdersForDeviceDTO {
+    fileprivate func ordersForDevice(req: Request) async throws -> OrderIdentifiersDTO {
         logger?.debug("Called ordersForDevice")
 
         let deviceIdentifier = req.parameters.get("deviceIdentifier")!
@@ -246,14 +246,14 @@ extension OrdersServiceCustom {
             }
         }
 
-        return OrdersForDeviceDTO(with: orderIdentifiers, maxDate: maxDate)
+        return OrderIdentifiersDTO(with: orderIdentifiers, maxDate: maxDate)
     }
 
     fileprivate func logMessage(req: Request) async throws -> HTTPStatus {
         if let logger {
-            let body: LogEntryDTO
+            let body: LogEntriesDTO
             do {
-                body = try req.content.decode(LogEntryDTO.self)
+                body = try req.content.decode(LogEntriesDTO.self)
             } catch {
                 throw Abort(.badRequest)
             }
