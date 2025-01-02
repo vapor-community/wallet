@@ -3,9 +3,9 @@ import APNSCore
 import Fluent
 import FluentWalletPasses
 import NIOSSL
-import VaporWallet
 import Vapor
 import VaporAPNS
+import VaporWallet
 import WalletPasses
 @_spi(CMS) import X509
 import Zip
