@@ -17,7 +17,6 @@ let package = Package(
         .package(url: "https://github.com/vapor/apns.git", from: "4.2.0"),
         // used in tests
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.8.0"),
-        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
     ],
     targets: [
         .target(

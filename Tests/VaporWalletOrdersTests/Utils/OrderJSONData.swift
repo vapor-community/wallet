@@ -2,7 +2,7 @@ import FluentWalletOrders
 import Foundation
 import WalletOrders
 
-struct OrderJSONData: OrderJSON.Properties {
+struct OrderJSONData: OrderJSON.Properties, Decodable {
     var schemaVersion = OrderJSON.SchemaVersion.v1
     var orderTypeIdentifier = OrderData.typeIdentifier
     var orderIdentifier: String
@@ -16,7 +16,7 @@ struct OrderJSONData: OrderJSON.Properties {
     var authenticationToken: String
     var webServiceURL = "https://www.example.com/api/orders/"
 
-    struct MerchantData: OrderJSON.Merchant {
+    struct MerchantData: OrderJSON.Merchant, Decodable {
         var merchantIdentifier = "com.example.pet-store"
         var displayName: String
         var url = "https://www.example.com/"

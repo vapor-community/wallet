@@ -1,7 +1,7 @@
 import FluentWalletPasses
 import WalletPasses
 
-struct PassJSONData: PassJSON.Properties {
+struct PassJSONData: PassJSON.Properties, Decodable {
     var description: String
     var formatVersion = PassJSON.FormatVersion.v1
     var organizationName = "vapor-community"
@@ -16,14 +16,14 @@ struct PassJSONData: PassJSON.Properties {
     var foregroundColor = "rgb(255, 255, 255)"
 
     var barcodes = Barcode(message: "test")
-    struct Barcode: PassJSON.Barcodes {
+    struct Barcode: PassJSON.Barcodes, Decodable {
         var format = PassJSON.BarcodeFormat.qr
         var message: String
         var messageEncoding = "iso-8859-1"
     }
 
     var boardingPass = Boarding(transitType: .air)
-    struct Boarding: PassJSON.BoardingPass {
+    struct Boarding: PassJSON.BoardingPass, Decodable {
         let transitType: PassJSON.TransitType
         let headerFields: [PassField]
         let primaryFields: [PassField]
@@ -31,7 +31,7 @@ struct PassJSONData: PassJSON.Properties {
         let auxiliaryFields: [PassField]
         let backFields: [PassField]
 
-        struct PassField: PassJSON.PassFieldContent {
+        struct PassField: PassJSON.PassFieldContent, Decodable {
             let key: String
             let label: String
             let value: String
