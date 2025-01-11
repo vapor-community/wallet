@@ -15,16 +15,16 @@ import Zip
 /// The generics should be passed in this order:
 /// - Pass Data Model
 /// - Pass Type
-/// - User Personalization Type
+/// - Personalization Type
 /// - Device Type
 /// - Registration Type
 public final class PassesServiceCustom<
     PD: PassDataModel,
     P: PassModel,
-    U: PersonalizationModel,
+    PersonalizationType: PersonalizationModel,
     D: DeviceModel,
     R: PassesRegistrationModel
->: Sendable where P == PD.PassType, P == R.PassType, D == R.DeviceType, U.PassType == P {
+>: Sendable where P == PD.PassType, P == R.PassType, D == R.DeviceType, PersonalizationType.PassType == P {
     private unowned let app: Application
     private let logger: Logger?
     private let builder: PassBuilder
@@ -311,16 +311,16 @@ extension PassesServiceCustom {
 
         let userInfo = try req.content.decode(PersonalizationDictionaryDTO.self)
 
-        let userPersonalization = U()
-        userPersonalization.fullName = userInfo.requiredPersonalizationInfo.fullName
-        userPersonalization.givenName = userInfo.requiredPersonalizationInfo.givenName
-        userPersonalization.familyName = userInfo.requiredPersonalizationInfo.familyName
-        userPersonalization.emailAddress = userInfo.requiredPersonalizationInfo.emailAddress
-        userPersonalization.postalCode = userInfo.requiredPersonalizationInfo.postalCode
-        userPersonalization.isoCountryCode = userInfo.requiredPersonalizationInfo.isoCountryCode
-        userPersonalization.phoneNumber = userInfo.requiredPersonalizationInfo.phoneNumber
-        userPersonalization._$pass.id = id
-        try await userPersonalization.create(on: req.db)
+        let personalization = PersonalizationType()
+        personalization.fullName = userInfo.requiredPersonalizationInfo.fullName
+        personalization.givenName = userInfo.requiredPersonalizationInfo.givenName
+        personalization.familyName = userInfo.requiredPersonalizationInfo.familyName
+        personalization.emailAddress = userInfo.requiredPersonalizationInfo.emailAddress
+        personalization.postalCode = userInfo.requiredPersonalizationInfo.postalCode
+        personalization.isoCountryCode = userInfo.requiredPersonalizationInfo.isoCountryCode
+        personalization.phoneNumber = userInfo.requiredPersonalizationInfo.phoneNumber
+        personalization._$pass.id = id
+        try await personalization.create(on: req.db)
 
         guard let token = userInfo.personalizationToken.data(using: .utf8) else {
             throw Abort(.internalServerError)
