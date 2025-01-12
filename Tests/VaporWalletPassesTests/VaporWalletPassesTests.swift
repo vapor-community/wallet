@@ -222,7 +222,7 @@ struct VaporWalletPassesTests {
                 }
             )
 
-            let personalizationQuery = try await Personalization.query(on: app.db).all()
+            let personalizationQuery = try await PersonalizationInfo.query(on: app.db).all()
             #expect(personalizationQuery.count == 1)
             #expect(personalizationQuery[0]._$emailAddress.value == personalizationDict.requiredPersonalizationInfo.emailAddress)
             #expect(personalizationQuery[0]._$familyName.value == personalizationDict.requiredPersonalizationInfo.familyName)

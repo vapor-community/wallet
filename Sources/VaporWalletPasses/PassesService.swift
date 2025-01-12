@@ -32,7 +32,7 @@ import Vapor
 
 /// The main class that handles Apple Wallet passes.
 public final class PassesService<PD: PassDataModel>: Sendable where Pass == PD.PassType {
-    private let service: PassesServiceCustom<PD, Pass, Personalization, PassesDevice, PassesRegistration>
+    private let service: PassesServiceCustom<PD, Pass, PersonalizationInfo, PassesDevice, PassesRegistration>
 
     /// Initializes the service and registers all the routes required for Apple Wallet to work.
     ///
@@ -97,13 +97,13 @@ public final class PassesService<PD: PassDataModel>: Sendable where Pass == PD.P
     ///
     /// - Parameters:
     ///   - migrations: The `Migrations` object to add the migrations to.
-    ///   - withPersonalization: Whether to include the migration for the `Personalization` model. Defaults to `false`.
+    ///   - withPersonalization: Whether to include the migration for the `PersonalizationInfo` model. Defaults to `false`.
     public static func register(migrations: Migrations, withPersonalization: Bool = false) {
         migrations.add(CreatePass())
         migrations.add(CreatePassesDevice())
         migrations.add(CreatePassesRegistration())
         if withPersonalization {
-            migrations.add(CreatePersonalization())
+            migrations.add(CreatePersonalizationInfo())
         }
     }
 

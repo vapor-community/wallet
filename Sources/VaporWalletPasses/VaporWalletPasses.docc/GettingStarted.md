@@ -51,7 +51,7 @@ GET https://example.com/api/passes/v1/push/{passTypeIdentifier}/{passSerial} HTT
 
 ### Custom Implementation of PassesService
 
-If you don't like the schema names provided by `FluentWalletPasses`, you can create your own models conforming to `PassModel`, `PersonalizationModel`, `DeviceModel`, and `PassesRegistrationModel` and instantiate the generic ``PassesServiceCustom``, providing it your model types.
+If you don't like the schema names provided by `FluentWalletPasses`, you can create your own models conforming to `PassModel`, `PersonalizationInfoModel`, `DeviceModel`, and `PassesRegistrationModel` and instantiate the generic ``PassesServiceCustom``, providing it your model types.
 
 ```swift
 import Fluent
@@ -64,7 +64,7 @@ public func configure(_ app: Application) async throws {
     let passesService = try PassesServiceCustom<
         PassData,
         MyPassType,
-        MyPersonalizationType,
+        MyPersonalizationInfoType,
         MyDeviceType,
         MyPassesRegistrationType
     >(
