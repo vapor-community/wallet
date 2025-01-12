@@ -8,154 +8,17 @@ The `FluentWalletPasses` framework provides models to save all the basic informa
 For all the other custom data needed to generate the pass, such as the barcodes, locations, etc., you have to create your own model and its model middleware to handle the creation and update of passes.
 The pass data model will be used to generate the `pass.json` file contents.
 
+See `FluentWalletPasses`'s documentation on `PassDataModel` to understand how to implement the pass data model and do it before continuing with this guide.
+
+> Important: You **must** add `api/passes/` to the `webServiceURL` key of the `PassJSON.Properties` struct.
+
 The pass you distribute to a user is a signed bundle that contains the `pass.json` file, images and optional localizations.
 The `VaporWalletPasses` framework provides the ``PassesService`` class that handles the creation of the pass JSON file and the signing of the pass bundle.
 The ``PassesService`` class also provides methods to send push notifications to all devices registered when you update a pass, and all the routes that Apple Wallet uses to retrieve passes.
 
-### Implement the Pass Data Model
-
-Your data model should contain all the fields that you store for your pass, as well as a foreign key to `Pass`, the pass model offered by the `FluentWalletPasses` framework, and a pass type identifier that's registered with Apple.
-
-```swift
-import Fluent
-import FluentWalletPasses
-import Foundation
-import WalletPasses
-
-final class PassData: PassDataModel, @unchecked Sendable {
-    static let schema = "pass_data"
-
-    static let typeIdentifier = Environment.get("PASS_TYPE_IDENTIFIER")!
-
-    @ID
-    var id: UUID?
-
-    @Parent(key: "pass_id")
-    var pass: Pass
-
-    // Examples of other extra fields:
-    @Field(key: "punches")
-    var punches: Int
-
-    @Field(key: "title")
-    var title: String
-
-    // Add any other field relative to your app, such as a location, a date, etc.
-
-    init() {}
-}
-
-struct CreatePassData: AsyncMigration {
-    public func prepare(on database: Database) async throws {
-        try await database.schema(PassData.schema)
-            .id()
-            .field("pass_id", .uuid, .required, .references(Pass.schema, .id, onDelete: .cascade))
-            .field("punches", .int, .required)
-            .field("title", .string, .required)
-            .create()
-    }
-    
-    public func revert(on database: Database) async throws {
-        try await database.schema(PassData.schema).delete()
-    }
-}
-```
-
-You also have to define two methods in the `PassDataModel`:
-- `passJSON(on db: any Database)`, where you'll have to return a `struct` that conforms to `PassJSON.Properties`.
-- `sourceFilesDirectoryPath(on db: any Database)`, where you'll have to return the path to a folder containing the pass files.
-
-```swift
-extension PassData {
-    func passJSON(on db: any Database) async throws -> any PassJSON.Properties {
-        try await PassJSONData(data: self, pass: self.$pass.get(on: db))
-    }
-
-    func sourceFilesDirectoryPath(on db: any Database) async throws -> String {
-        // The location might vary depending on the type of pass.
-        "SourceFiles/Passes/"
-    }
-}
-```
-
-### Handle Cleanup
-
-Depending on your implementation details, you may want to automatically clean out the passes and devices table when a registration is deleted.
-The implementation will be based on your type of SQL database, as there's not yet a Fluent way to implement something like SQL's `NOT EXISTS` call with a `DELETE` statement.
-
-> Warning: Be careful with SQL triggers, as they can have unintended consequences if not properly implemented.
-
-### Model the pass.json contents
-
-Create a `struct` that implements `PassJSON.Properties` which will contain all the fields for the generated `pass.json` file.
-Create an initializer that takes your custom pass data, the `Pass` and everything else you may need.
-
-> Tip: For information on the various keys available see the [documentation](https://developer.apple.com/documentation/walletpasses/pass). See also [this guide](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/index.html#//apple_ref/doc/uid/TP40012195-CH1-SW1) for some help.
-
-```swift
-import FluentWalletPasses
-import WalletPasses
-
-struct PassJSONData: PassJSON.Properties {
-    let description: String
-    let formatVersion = PassJSON.FormatVersion.v1
-    let organizationName = "vapor-community"
-    let passTypeIdentifier = PassData.typeIdentifier
-    let serialNumber: String
-    let teamIdentifier = Environment.get("APPLE_TEAM_IDENTIFIER")!
-
-    private let webServiceURL = "https://example.com/api/passes/"
-    private let authenticationToken: String
-    private let logoText = "Vapor"
-    private let sharingProhibited = true
-    let backgroundColor = "rgb(207, 77, 243)"
-    let foregroundColor = "rgb(255, 255, 255)"
-
-    let barcodes = Barcode(message: "test")
-    struct Barcode: PassJSON.Barcodes {
-        let format = PassJSON.BarcodeFormat.qr
-        let message: String
-        let messageEncoding = "iso-8859-1"
-    }
-
-    let boardingPass = Boarding(transitType: .air)
-    struct Boarding: PassJSON.BoardingPass {
-        let transitType: PassJSON.TransitType
-        let headerFields: [PassField]
-        let primaryFields: [PassField]
-        let secondaryFields: [PassField]
-        let auxiliaryFields: [PassField]
-        let backFields: [PassField]
-
-        struct PassField: PassJSON.PassFieldContent {
-            let key: String
-            let label: String
-            let value: String
-        }
-
-        init(transitType: PassJSON.TransitType) {
-            self.headerFields = [.init(key: "header", label: "Header", value: "Header")]
-            self.primaryFields = [.init(key: "primary", label: "Primary", value: "Primary")]
-            self.secondaryFields = [.init(key: "secondary", label: "Secondary", value: "Secondary")]
-            self.auxiliaryFields = [.init(key: "auxiliary", label: "Auxiliary", value: "Auxiliary")]
-            self.backFields = [.init(key: "back", label: "Back", value: "Back")]
-            self.transitType = transitType
-        }
-    }
-
-    init(data: PassData, pass: Pass) {
-        self.description = data.title
-        self.serialNumber = pass.id!.uuidString
-        self.authenticationToken = pass.authenticationToken
-    }
-}
-```
-
-> Important: You **must** add `api/passes/` to your `webServiceURL`, as shown in the example above.
-
 ### Initialize the Service
 
-Next, initialize the ``PassesService`` inside the `configure.swift` file.
+After creating the pass data model and the pass JSON data struct, initialize the ``PassesService`` inside the `configure.swift` file.
 This will implement all of the routes that Apple Wallet expects to exist on your server.
 
 > Tip: Obtaining the three certificates files could be a bit tricky. You could get some guidance from [this guide](https://github.com/alexandercerutti/passkit-generator/wiki/Generating-Certificates) and [this video](https://www.youtube.com/watch?v=rJZdPoXHtzI).
@@ -188,7 +51,7 @@ GET https://example.com/api/passes/v1/push/{passTypeIdentifier}/{passSerial} HTT
 
 ### Custom Implementation of PassesService
 
-If you don't like the schema names provided by default, you can create your own models conforming to `PassModel`, `PersonalizationModel`, `DeviceModel`, and `PassesRegistrationModel` and instantiate the generic ``PassesServiceCustom``, providing it your model types.
+If you don't like the schema names provided by `FluentWalletPasses`, you can create your own models conforming to `PassModel`, `PersonalizationModel`, `DeviceModel`, and `PassesRegistrationModel` and instantiate the generic ``PassesServiceCustom``, providing it your model types.
 
 ```swift
 import Fluent
@@ -215,7 +78,7 @@ public func configure(_ app: Application) async throws {
 
 ### Register Migrations
 
-If you're using the default schemas provided by this framework, you can register the default models in your `configure(_:)` method:
+If you're using the default schemas provided by `FluentWalletPasses`, you can register the default models in your `configure(_:)` method:
 
 ```swift
 PassesService<PassData>.register(migrations: app.migrations)

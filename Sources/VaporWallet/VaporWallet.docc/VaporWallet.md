@@ -4,7 +4,7 @@ Create, distribute, and update passes and orders for the Apple Wallet app with V
 
 ## Overview
 
-The `VaporWallet` framework provides a set of tools shared by the `VaporWalletPasses` and `VaporWalletOrders` frameworks, which includes the two protocols for defining custom models for device data and error logs.
+The `VaporWallet` framework provides a set of tools shared by the `VaporWalletPasses` and `VaporWalletOrders` frameworks.
 
 @Row {
     @Column(size: 2) { }

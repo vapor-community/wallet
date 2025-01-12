@@ -24,6 +24,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
+                .product(name: "VaporAPNS", package: "apns"),
             ],
             swiftSettings: swiftSettings
         ),
@@ -33,7 +34,6 @@ let package = Package(
             dependencies: [
                 .target(name: "VaporWallet"),
                 .product(name: "FluentWalletPasses", package: "fluent-wallet"),
-                .product(name: "VaporAPNS", package: "apns"),
             ],
             swiftSettings: swiftSettings
         ),
@@ -55,7 +55,6 @@ let package = Package(
             dependencies: [
                 .target(name: "VaporWallet"),
                 .product(name: "FluentWalletOrders", package: "fluent-wallet"),
-                .product(name: "VaporAPNS", package: "apns"),
             ],
             swiftSettings: swiftSettings
         ),

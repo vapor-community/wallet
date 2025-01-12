@@ -8,130 +8,17 @@ The `FluentWalletOrders` framework provides models to save all the basic informa
 For all the other custom data needed to generate the order, such as the barcodes, merchant info, etc., you have to create your own model and its model middleware to handle the creation and update of order.
 The order data model will be used to generate the `order.json` file contents.
 
+See `FluentWalletOrders`'s documentation on `OrderDataModel` to understand how to implement the order data model and do it before continuing with this guide.
+
+> Important: You **must** add `api/orders/` to the `webServiceURL` key of the `OrderJSON.Properties` struct.
+
 The order you distribute to a user is a signed bundle that contains the `order.json` file, images, and optional localizations.
 The `VaporWalletOrders` framework provides the ``OrdersService`` class that handles the creation of the order JSON file and the signing of the order bundle.
 The ``OrdersService`` class also provides methods to send push notifications to all devices registered when you update an order, and all the routes that Apple Wallet uses to retrieve orders.
 
-### Implement the Order Data Model
-
-Your data model should contain all the fields that you store for your order, as well as a foreign key to `Order`, the order model offered by the `FluentWalletOrders` framework, and a order type identifier that's registered with Apple.
-
-```swift
-import Fluent
-import FluentWalletOrders
-import Foundation
-import WalletOrders
-
-final class OrderData: OrderDataModel, @unchecked Sendable {
-    static let schema = "order_data"
-
-    static let typeIdentifier = Environment.get("ORDER_TYPE_IDENTIFIER")!
-
-    @ID
-    var id: UUID?
-
-    @Parent(key: "order_id")
-    var order: Order
-
-    // Example of other extra fields:
-    @Field(key: "merchant_name")
-    var merchantName: String
-
-    // Add any other field relative to your app, such as an identifier, the order status, etc.
-
-    init() { }
-}
-
-struct CreateOrderData: AsyncMigration {
-    public func prepare(on database: Database) async throws {
-        try await database.schema(OrderData.schema)
-            .id()
-            .field("order_id", .uuid, .required, .references(Order.schema, .id, onDelete: .cascade))
-            .field("merchant_name", .string, .required)
-            .create()
-    }
-    
-    public func revert(on database: Database) async throws {
-        try await database.schema(OrderData.schema).delete()
-    }
-}
-```
-
-You also have to define two methods in the `OrderDataModel`:
-- `orderJSON(on db: any Database)`, where you'll have to return a `struct` that conforms to `OrderJSON.Properties`.
-- `sourceFilesDirectoryPath(on db: any Database)`, where you'll have to return the path to a folder containing the order files.
-
-```swift
-extension OrderData {
-    func orderJSON(on db: any Database) async throws -> any OrderJSON.Properties {
-        try await OrderJSONData(data: self, order: self.$order.get(on: db))
-    }
-
-    func sourceFilesDirectoryPath(on db: any Database) async throws -> String {
-        // The location might vary depending on the type of order.
-        "SourceFiles/Orders/"
-    }
-}
-```
-
-### Handle Cleanup
-
-Depending on your implementation details, you may want to automatically clean out the orders and devices table when a registration is deleted.
-The implementation will be based on your type of SQL database, as there's not yet a Fluent way to implement something like SQL's `NOT EXISTS` call with a `DELETE` statement.
-
-> Warning: Be careful with SQL triggers, as they can have unintended consequences if not properly implemented.
-
-### Model the order.json contents
-
-Create a `struct` that implements `OrderJSON.Properties` which will contain all the fields for the generated `order.json` file.
-Create an initializer that takes your custom order data, the `Order` and everything else you may need.
-
-> Tip: For information on the various keys available see the [documentation](https://developer.apple.com/documentation/walletorders/order).
-
-```swift
-import FluentWalletOrders
-import WalletOrders
-
-struct OrderJSONData: OrderJSON.Properties {
-    let schemaVersion = OrderJSON.SchemaVersion.v1
-    let orderTypeIdentifier = OrderData.typeIdentifier
-    let orderIdentifier: String
-    let orderType = OrderJSON.OrderType.ecommerce
-    let orderNumber = "HM090772020864"
-    let createdAt: String
-    let updatedAt: String
-    let status = OrderJSON.OrderStatus.open
-    let merchant: MerchantData
-    let orderManagementURL = "https://www.example.com/"
-    let authenticationToken: String
-
-    private let webServiceURL = "https://example.com/api/orders/"
-
-    struct MerchantData: OrderJSON.Merchant {
-        let merchantIdentifier = "com.example.pet-store"
-        let displayName: String
-        let url = "https://www.example.com/"
-        let logo = "pet_store_logo.png"
-    }
-    
-    init(data: OrderData, order: Order) {
-        self.orderIdentifier = order.id!.uuidString
-        self.authenticationToken = order.authenticationToken
-        self.merchant = MerchantData(displayName: data.title)
-
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = .withInternetDateTime
-        self.createdAt = dateFormatter.string(from: order.createdAt!)
-        self.updatedAt = dateFormatter.string(from: order.updatedAt!)
-    }
-}
-```
-
-> Important: You **must** add `api/orders/` to your `webServiceURL`, as shown in the example above.
-
 ### Initialize the Service
 
-Next, initialize the ``OrdersService`` inside the `configure.swift` file.
+After creating the order data model and the order JSON data struct, initialize the ``OrdersService`` inside the `configure.swift` file.
 This will implement all of the routes that Apple Wallet expects to exist on your server.
 
 > Tip: Obtaining the three certificates files could be a bit tricky. You could get some guidance from [this guide](https://github.com/alexandercerutti/passkit-generator/wiki/Generating-Certificates) and [this video](https://www.youtube.com/watch?v=rJZdPoXHtzI). Those guides are for Wallet passes, but the process is similar for Wallet orders.
@@ -164,7 +51,7 @@ GET https://example.com/api/orders/v1/push/{orderTypeIdentifier}/{orderIdentifie
 
 ### Custom Implementation of OrdersService
 
-If you don't like the schema names provided by default, you can create your own models conforming to `OrderModel`, `DeviceModel` and `OrdersRegistrationModel` and instantiate the generic ``OrdersServiceCustom``, providing it your model types.
+If you don't like the schema names provided by `FluentWalletOrders`, you can create your own models conforming to `OrderModel`, `DeviceModel` and `OrdersRegistrationModel` and instantiate the generic ``OrdersServiceCustom``, providing it your model types.
 
 ```swift
 import Fluent
@@ -190,7 +77,7 @@ public func configure(_ app: Application) async throws {
 
 ### Register Migrations
 
-If you're using the default schemas provided by this framework, you can register the default models in your `configure(_:)` method:
+If you're using the default schemas provided by `FluentWalletOrders`, you can register the default models in your `configure(_:)` method:
 
 ```swift
 OrdersService<OrderData>.register(migrations: app.migrations)
