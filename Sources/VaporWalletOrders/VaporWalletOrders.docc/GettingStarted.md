@@ -8,7 +8,7 @@ The `FluentWalletOrders` framework provides models to save all the basic informa
 For all the other custom data needed to generate the order, such as the barcodes, merchant info, etc., you have to create your own model and its model middleware to handle the creation and update of order.
 The order data model will be used to generate the `order.json` file contents.
 
-See `FluentWalletOrders`'s documentation on `OrderDataModel` to understand how to implement the order data model and do it before continuing with this guide.
+See [`FluentWalletOrders`'s documentation on `OrderDataModel`](https://swiftpackageindex.com/fpseverino/fluent-wallet/documentation/fluentwalletorders/orderdatamodel) to understand how to implement the order data model and do it before continuing with this guide.
 
 > Important: You **must** add `api/orders/` to the `webServiceURL` key of the `OrderJSON.Properties` struct.
 

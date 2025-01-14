@@ -8,7 +8,7 @@ The `FluentWalletPasses` framework provides models to save all the basic informa
 For all the other custom data needed to generate the pass, such as the barcodes, locations, etc., you have to create your own model and its model middleware to handle the creation and update of passes.
 The pass data model will be used to generate the `pass.json` file contents.
 
-See `FluentWalletPasses`'s documentation on `PassDataModel` to understand how to implement the pass data model and do it before continuing with this guide.
+See [`FluentWalletPasses`'s documentation on `PassDataModel`](https://swiftpackageindex.com/fpseverino/fluent-wallet/documentation/fluentwalletpasses/passdatamodel) to understand how to implement the pass data model and do it before continuing with this guide.
 
 > Important: You **must** add `api/passes/` to the `webServiceURL` key of the `PassJSON.Properties` struct.
 
