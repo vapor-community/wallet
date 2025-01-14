@@ -2,72 +2,71 @@
 import PackageDescription
 
 let package = Package(
-    name: "PassKit",
+    name: "wallet",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .library(name: "Passes", targets: ["Passes"]),
-        .library(name: "Orders", targets: ["Orders"]),
+        .library(name: "VaporWalletPasses", targets: ["VaporWalletPasses"]),
+        .library(name: "VaporWalletOrders", targets: ["VaporWalletOrders"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.108.0"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.111.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.12.0"),
+        .package(url: "https://github.com/fpseverino/fluent-wallet.git", from: "0.1.0"),
         .package(url: "https://github.com/vapor/apns.git", from: "4.2.0"),
-        .package(url: "https://github.com/vapor-community/Zip.git", from: "2.2.4"),
-        .package(url: "https://github.com/apple/swift-certificates.git", from: "1.6.1"),
         // used in tests
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.8.0"),
     ],
     targets: [
         .target(
-            name: "PassKit",
+            name: "VaporWallet",
             dependencies: [
-                .product(name: "Fluent", package: "fluent"),
                 .product(name: "Vapor", package: "vapor"),
+                .product(name: "Fluent", package: "fluent"),
                 .product(name: "VaporAPNS", package: "apns"),
-                .product(name: "Zip", package: "zip"),
-                .product(name: "X509", package: "swift-certificates"),
             ],
             swiftSettings: swiftSettings
         ),
+        // MARK: - Wallet Passes
         .target(
-            name: "Passes",
+            name: "VaporWalletPasses",
             dependencies: [
-                .target(name: "PassKit")
-            ],
-            swiftSettings: swiftSettings
-        ),
-        .target(
-            name: "Orders",
-            dependencies: [
-                .target(name: "PassKit")
+                .target(name: "VaporWallet"),
+                .product(name: "FluentWalletPasses", package: "fluent-wallet"),
             ],
             swiftSettings: swiftSettings
         ),
         .testTarget(
-            name: "PassesTests",
+            name: "VaporWalletPassesTests",
             dependencies: [
-                .target(name: "Passes"),
-                .target(name: "PassKit"),
-                .product(name: "XCTVapor", package: "vapor"),
+                .target(name: "VaporWalletPasses"),
+                .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ],
             resources: [
-                .copy("Templates")
+                .copy("SourceFiles")
+            ],
+            swiftSettings: swiftSettings
+        ),
+        // MARK: - Wallet Orders
+        .target(
+            name: "VaporWalletOrders",
+            dependencies: [
+                .target(name: "VaporWallet"),
+                .product(name: "FluentWalletOrders", package: "fluent-wallet"),
             ],
             swiftSettings: swiftSettings
         ),
         .testTarget(
-            name: "OrdersTests",
+            name: "VaporWalletOrdersTests",
             dependencies: [
-                .target(name: "Orders"),
-                .target(name: "PassKit"),
-                .product(name: "XCTVapor", package: "vapor"),
+                .target(name: "VaporWalletOrders"),
+                .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ],
             resources: [
-                .copy("Templates")
+                .copy("SourceFiles")
             ],
             swiftSettings: swiftSettings
         ),

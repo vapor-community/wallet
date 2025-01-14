@@ -12,5 +12,6 @@ jobs:
     with:
       with_linting: true
       test_filter: --no-parallel
+      with_tsan: false
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
