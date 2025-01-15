@@ -10,8 +10,6 @@ The order data model will be used to generate the `order.json` file contents.
 
 See [`FluentWalletOrders`'s documentation on `OrderDataModel`](https://swiftpackageindex.com/fpseverino/fluent-wallet/documentation/fluentwalletorders/orderdatamodel) to understand how to implement the order data model and do it before continuing with this guide.
 
-> Important: You **must** add `api/orders/` to the `webServiceURL` key of the `OrderJSON.Properties` struct.
-
 The order you distribute to a user is a signed bundle that contains the `order.json` file, images, and optional localizations.
 The `VaporWalletOrders` framework provides the ``OrdersService`` class that handles the creation of the order JSON file and the signing of the order bundle.
 The ``OrdersService`` class also provides methods to send push notifications to all devices registered when you update an order, and all the routes that Apple Wallet uses to retrieve orders.
@@ -19,7 +17,8 @@ The ``OrdersService`` class also provides methods to send push notifications to 
 ### Initialize the Service
 
 After creating the order data model and the order JSON data struct, initialize the ``OrdersService`` inside the `configure.swift` file.
-This will implement all of the routes that Apple Wallet expects to exist on your server.
+
+To implement all of the routes that Apple Wallet expects to exist on your server, don't forget to register them using the ``OrdersService`` object as a `RouteCollection`.
 
 > Tip: Obtaining the three certificates files could be a bit tricky. You could get some guidance from [this guide](https://github.com/alexandercerutti/passkit-generator/wiki/Generating-Certificates) and [this video](https://www.youtube.com/watch?v=rJZdPoXHtzI). Those guides are for Wallet passes, but the process is similar for Wallet orders.
 
@@ -36,17 +35,9 @@ public func configure(_ app: Application) async throws {
         pemCertificate: Environment.get("PEM_CERTIFICATE")!,
         pemPrivateKey: Environment.get("PEM_PRIVATE_KEY")!
     )
+
+    try app.grouped("api", "orders").register(collection: ordersService)
 }
-```
-
-If you wish to include routes specifically for sending push notifications to updated orders, you can also pass to the ``OrdersService`` initializer whatever `Middleware` you want Vapor to use to authenticate the two routes. Doing so will add two routes, the first one sends notifications and the second one retrieves a list of push tokens which would be sent a notification.
-
-```http
-POST https://example.com/api/orders/v1/push/{orderTypeIdentifier}/{orderIdentifier} HTTP/2
-```
-
-```http
-GET https://example.com/api/orders/v1/push/{orderTypeIdentifier}/{orderIdentifier} HTTP/2
 ```
 
 ### Custom Implementation of OrdersService
@@ -72,6 +63,8 @@ public func configure(_ app: Application) async throws {
         pemCertificate: Environment.get("PEM_CERTIFICATE")!,
         pemPrivateKey: Environment.get("PEM_PRIVATE_KEY")!
     )
+
+    try app.grouped("api", "orders").register(collection: ordersService)
 }
 ```
 
@@ -123,7 +116,7 @@ struct OrdersController: RouteCollection {
 Then use the object inside your route handlers to generate the order bundle with the ``OrdersService/build(order:on:)`` method and distribute it with the "`application/vnd.apple.order`" MIME type.
 
 ```swift
-fileprivate func orderHandler(_ req: Request) async throws -> Response {
+func orderHandler(_ req: Request) async throws -> Response {
     ...
     guard let order = try await OrderData.query(on: req.db)
         .filter(...)

@@ -369,27 +369,6 @@ struct VaporWalletPassesTests {
                 }
             )
 
-            try await app.test(
-                .GET,
-                "\(passesURI)push/\(pass.typeIdentifier)/\(pass.requireID())",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    let pushTokens = try res.content.decode([String].self)
-                    #expect(pushTokens.count == 1)
-                    #expect(pushTokens[0] == pushToken)
-                }
-            )
-
-            // Test call with invalid UUID
-            try await app.test(
-                .GET,
-                "\(passesURI)push/\(pass.typeIdentifier)/\("not-a-uuid")",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
-                }
-            )
-
             // Test call with invalid UUID
             try await app.test(
                 .DELETE,
@@ -424,15 +403,6 @@ struct VaporWalletPassesTests {
                     #expect(res.status == .ok)
                 }
             )
-
-            // Test call with no DTO
-            try await app.test(
-                .POST,
-                "\(passesURI)log",
-                afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
-                }
-            )
         }
     }
 
@@ -443,62 +413,8 @@ struct VaporWalletPassesTests {
 
             let passData = PassData(title: "Test Pass")
             try await passData.create(on: app.db)
-            let pass = try await passData.$pass.get(on: app.db)
 
             try await passesService.sendPushNotifications(for: passData, on: app.db)
-
-            let deviceLibraryIdentifier = "abcdefg"
-            let pushToken = "1234567890"
-
-            // Test call with incorrect secret
-            try await app.test(
-                .POST,
-                "\(passesURI)push/\(pass.typeIdentifier)/\(pass.requireID())",
-                headers: ["X-Secret": "bar"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .unauthorized)
-                }
-            )
-
-            try await app.test(
-                .POST,
-                "\(passesURI)push/\(pass.typeIdentifier)/\(pass.requireID())",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .noContent)
-                }
-            )
-
-            try await app.test(
-                .POST,
-                "\(passesURI)devices/\(deviceLibraryIdentifier)/registrations/\(pass.typeIdentifier)/\(pass.requireID())",
-                headers: ["Authorization": "ApplePass \(pass.authenticationToken)"],
-                beforeRequest: { req async throws in
-                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
-                },
-                afterResponse: { res async throws in
-                    #expect(res.status == .created)
-                }
-            )
-
-            try await app.test(
-                .POST,
-                "\(passesURI)push/\(pass.typeIdentifier)/\(pass.requireID())",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .internalServerError)
-                }
-            )
-
-            // Test call with invalid UUID
-            try await app.test(
-                .POST,
-                "\(passesURI)push/\(pass.typeIdentifier)/\("not-a-uuid")",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
-                }
-            )
 
             if !useEncryptedKey {
                 // Test `AsyncModelMiddleware` update method

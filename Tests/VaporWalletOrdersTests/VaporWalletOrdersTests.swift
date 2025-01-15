@@ -233,27 +233,6 @@ struct VaporWalletOrdersTests {
                 }
             )
 
-            try await app.test(
-                .GET,
-                "\(ordersURI)push/\(order.typeIdentifier)/\(order.requireID())",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    let pushTokens = try res.content.decode([String].self)
-                    #expect(pushTokens.count == 1)
-                    #expect(pushTokens[0] == pushToken)
-                }
-            )
-
-            // Test call with invalid UUID
-            try await app.test(
-                .GET,
-                "\(ordersURI)push/\(order.typeIdentifier)/\("not-a-uuid")",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
-                }
-            )
-
             // Test call with invalid UUID
             try await app.test(
                 .DELETE,
@@ -288,15 +267,6 @@ struct VaporWalletOrdersTests {
                     #expect(res.status == .ok)
                 }
             )
-
-            // Test call with no DTO
-            try await app.test(
-                .POST,
-                "\(ordersURI)log",
-                afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
-                }
-            )
         }
     }
 
@@ -307,62 +277,8 @@ struct VaporWalletOrdersTests {
 
             let orderData = OrderData(title: "Test Order")
             try await orderData.create(on: app.db)
-            let order = try await orderData._$order.get(on: app.db)
 
             try await ordersService.sendPushNotifications(for: orderData, on: app.db)
-
-            let deviceLibraryIdentifier = "abcdefg"
-            let pushToken = "1234567890"
-
-            // Test call with incorrect secret
-            try await app.test(
-                .POST,
-                "\(ordersURI)push/\(order.typeIdentifier)/\(order.requireID())",
-                headers: ["X-Secret": "bar"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .unauthorized)
-                }
-            )
-
-            try await app.test(
-                .POST,
-                "\(ordersURI)push/\(order.typeIdentifier)/\(order.requireID())",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .noContent)
-                }
-            )
-
-            try await app.test(
-                .POST,
-                "\(ordersURI)devices/\(deviceLibraryIdentifier)/registrations/\(order.typeIdentifier)/\(order.requireID())",
-                headers: ["Authorization": "AppleOrder \(order.authenticationToken)"],
-                beforeRequest: { req async throws in
-                    try req.content.encode(PushTokenDTO(pushToken: pushToken))
-                },
-                afterResponse: { res async throws in
-                    #expect(res.status == .created)
-                }
-            )
-
-            try await app.test(
-                .POST,
-                "\(ordersURI)push/\(order.typeIdentifier)/\(order.requireID())",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .internalServerError)
-                }
-            )
-
-            // Test call with invalid UUID
-            try await app.test(
-                .POST,
-                "\(ordersURI)push/\(order.typeIdentifier)/\("not-a-uuid")",
-                headers: ["X-Secret": "foo"],
-                afterResponse: { res async throws in
-                    #expect(res.status == .badRequest)
-                }
-            )
 
             if !useEncryptedKey {
                 // Test `AsyncModelMiddleware` update method

@@ -22,14 +22,15 @@ func withApp(
 
         let passesService = try PassesService<PassData>(
             app: app,
-            pushRoutesMiddleware: SecretMiddleware(secret: "foo"),
-            logger: app.logger,
             pemWWDRCertificate: TestCertificate.pemWWDRCertificate,
             pemCertificate: useEncryptedKey ? TestCertificate.encryptedPemCertificate : TestCertificate.pemCertificate,
             pemPrivateKey: useEncryptedKey ? TestCertificate.encryptedPemPrivateKey : TestCertificate.pemPrivateKey,
             pemPrivateKeyPassword: useEncryptedKey ? "password" : nil
         )
+
         app.databases.middleware.use(passesService, on: .sqlite)
+
+        try app.grouped("api", "passes").register(collection: passesService)
 
         Zip.addCustomFileExtension("pkpass")
 
