@@ -5,13 +5,13 @@ import VaporWallet
 
 extension OrdersServiceCustom: RouteCollection {
     public func boot(routes: any RoutesBuilder) throws {
-        let orderTypeIdentifier = PathComponent(stringLiteral: OD.typeIdentifier)
+        let orderTypeIdentifier = PathComponent(stringLiteral: OrderDataType.typeIdentifier)
 
         let v1 = routes.grouped("v1")
         v1.get("devices", ":deviceIdentifier", "registrations", orderTypeIdentifier, use: self.ordersForDevice)
         v1.post("log", use: self.logMessage)
 
-        let v1auth = v1.grouped(AppleOrderMiddleware<O>())
+        let v1auth = v1.grouped(AppleOrderMiddleware<OrderType>())
         v1auth.post("devices", ":deviceIdentifier", "registrations", orderTypeIdentifier, ":orderIdentifier", use: self.registerDevice)
         v1auth.get("orders", orderTypeIdentifier, ":orderIdentifier", use: self.latestVersionOfOrder)
         v1auth.delete("devices", ":deviceIdentifier", "registrations", orderTypeIdentifier, ":orderIdentifier", use: self.unregisterDevice)
@@ -29,9 +29,9 @@ extension OrdersServiceCustom: RouteCollection {
             throw Abort(.badRequest)
         }
         guard
-            let order = try await O.query(on: req.db)
+            let order = try await OrderType.query(on: req.db)
                 .filter(\._$id == id)
-                .filter(\._$typeIdentifier == OD.typeIdentifier)
+                .filter(\._$typeIdentifier == OrderDataType.typeIdentifier)
                 .first()
         else {
             throw Abort(.notFound)
@@ -42,7 +42,7 @@ extension OrdersServiceCustom: RouteCollection {
         }
 
         guard
-            let orderData = try await OD.query(on: req.db)
+            let orderData = try await OrderDataType.query(on: req.db)
                 .filter(\._$order.$id == id)
                 .first()
         else {
@@ -75,39 +75,39 @@ extension OrdersServiceCustom: RouteCollection {
         }
         let deviceIdentifier = req.parameters.get("deviceIdentifier")!
         guard
-            let order = try await O.query(on: req.db)
+            let order = try await OrderType.query(on: req.db)
                 .filter(\._$id == orderIdentifier)
-                .filter(\._$typeIdentifier == OD.typeIdentifier)
+                .filter(\._$typeIdentifier == OrderDataType.typeIdentifier)
                 .first()
         else {
             throw Abort(.notFound)
         }
 
-        let device = try await D.query(on: req.db)
+        let device = try await DeviceType.query(on: req.db)
             .filter(\._$libraryIdentifier == deviceIdentifier)
             .filter(\._$pushToken == pushToken)
             .first()
         if let device = device {
             return try await Self.createRegistration(device: device, order: order, db: req.db)
         } else {
-            let newDevice = D(libraryIdentifier: deviceIdentifier, pushToken: pushToken)
+            let newDevice = DeviceType(libraryIdentifier: deviceIdentifier, pushToken: pushToken)
             try await newDevice.create(on: req.db)
             return try await Self.createRegistration(device: newDevice, order: order, db: req.db)
         }
     }
 
-    private static func createRegistration(device: D, order: O, db: any Database) async throws -> HTTPStatus {
-        let r = try await R.for(
+    private static func createRegistration(device: DeviceType, order: OrderType, db: any Database) async throws -> HTTPStatus {
+        let r = try await OrdersRegistrationType.for(
             deviceLibraryIdentifier: device.libraryIdentifier,
             typeIdentifier: order.typeIdentifier,
             on: db
         )
-        .filter(O.self, \._$id == order.requireID())
+        .filter(OrderType.self, \._$id == order.requireID())
         .first()
         // If the registration already exists, docs say to return 200 OK
         if r != nil { return .ok }
 
-        let registration = R()
+        let registration = OrdersRegistrationType()
         registration._$order.id = try order.requireID()
         registration._$device.id = try device.requireID()
         try await registration.create(on: db)
@@ -119,14 +119,14 @@ extension OrdersServiceCustom: RouteCollection {
 
         let deviceIdentifier = req.parameters.get("deviceIdentifier")!
 
-        var query = R.for(
+        var query = OrdersRegistrationType.for(
             deviceLibraryIdentifier: deviceIdentifier,
-            typeIdentifier: OD.typeIdentifier,
+            typeIdentifier: OrderDataType.typeIdentifier,
             on: req.db
         )
         if let since: TimeInterval = req.query["ordersModifiedSince"] {
             let when = Date(timeIntervalSince1970: since)
-            query = query.filter(O.self, \._$updatedAt > when)
+            query = query.filter(OrderType.self, \._$updatedAt > when)
         }
 
         let registrations = try await query.all()
@@ -166,12 +166,12 @@ extension OrdersServiceCustom: RouteCollection {
         let deviceIdentifier = req.parameters.get("deviceIdentifier")!
 
         guard
-            let r = try await R.for(
+            let r = try await OrdersRegistrationType.for(
                 deviceLibraryIdentifier: deviceIdentifier,
-                typeIdentifier: OD.typeIdentifier,
+                typeIdentifier: OrderDataType.typeIdentifier,
                 on: req.db
             )
-            .filter(O.self, \._$id == orderIdentifier)
+            .filter(OrderType.self, \._$id == orderIdentifier)
             .first()
         else {
             throw Abort(.notFound)

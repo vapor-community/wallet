@@ -12,16 +12,21 @@ import Zip
 /// Class to handle ``OrdersService``.
 ///
 /// The generics should be passed in this order:
-/// - Order Data Model
-/// - Order Type
-/// - Device Type
-/// - Registration Type
+/// - `OrderDataModel`
+/// - `OrderModel`
+/// - `DeviceModel`
+/// - `OrdersRegistrationModel`
 public final class OrdersServiceCustom<
-    OD: OrderDataModel,
-    O: OrderModel,
-    D: DeviceModel,
-    R: OrdersRegistrationModel
->: Sendable where O == OD.OrderType, O == R.OrderType, D == R.DeviceType {
+    OrderDataType: OrderDataModel,
+    OrderType: OrderModel,
+    DeviceType: DeviceModel,
+    OrdersRegistrationType: OrdersRegistrationModel
+>: Sendable
+where
+    OrderDataType.OrderType == OrderType,
+    OrdersRegistrationType.OrderType == OrderType,
+    OrdersRegistrationType.DeviceType == DeviceType
+{
     private unowned let app: Application
     let builder: OrderBuilder
 
@@ -93,11 +98,11 @@ extension OrdersServiceCustom {
     /// - Parameters:
     ///   - orderData: The order to send the notifications for.
     ///   - db: The `Database` to use.
-    public func sendPushNotifications(for orderData: OD, on db: any Database) async throws {
+    public func sendPushNotifications(for orderData: OrderDataType, on db: any Database) async throws {
         try await sendPushNotifications(for: orderData._$order.get(on: db), on: db)
     }
 
-    func sendPushNotifications(for order: O, on db: any Database) async throws {
+    func sendPushNotifications(for order: OrderType, on db: any Database) async throws {
         let registrations = try await Self.registrations(for: order, on: db)
         for reg in registrations {
             let backgroundNotification = APNSBackgroundNotification(
@@ -117,16 +122,16 @@ extension OrdersServiceCustom {
         }
     }
 
-    private static func registrations(for order: O, on db: any Database) async throws -> [R] {
+    private static func registrations(for order: OrderType, on db: any Database) async throws -> [OrdersRegistrationType] {
         // This could be done by enforcing the caller to have a Siblings property wrapper,
         // but there's not really any value to forcing that on them when we can just do the query ourselves like this.
-        try await R.query(on: db)
+        try await OrdersRegistrationType.query(on: db)
             .join(parent: \._$order)
             .join(parent: \._$device)
             .with(\._$order)
             .with(\._$device)
-            .filter(O.self, \._$typeIdentifier == OD.typeIdentifier)
-            .filter(O.self, \._$id == order.requireID())
+            .filter(OrderType.self, \._$typeIdentifier == OrderDataType.typeIdentifier)
+            .filter(OrderType.self, \._$id == order.requireID())
             .all()
     }
 }
@@ -140,7 +145,7 @@ extension OrdersServiceCustom {
     ///   - db: The `Database` to use.
     ///
     /// - Returns: The generated order content as `Data`.
-    public func build(order: OD, on db: any Database) async throws -> Data {
+    public func build(order: OrderDataType, on db: any Database) async throws -> Data {
         try await self.builder.build(
             order: order.orderJSON(on: db),
             sourceFilesDirectoryPath: order.sourceFilesDirectoryPath(on: db)

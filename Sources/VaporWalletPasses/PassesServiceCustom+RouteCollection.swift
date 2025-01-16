@@ -5,14 +5,14 @@ import VaporWallet
 
 extension PassesServiceCustom: RouteCollection {
     public func boot(routes: any RoutesBuilder) throws {
-        let passTypeIdentifier = PathComponent(stringLiteral: PD.typeIdentifier)
+        let passTypeIdentifier = PathComponent(stringLiteral: PassDataType.typeIdentifier)
 
         let v1 = routes.grouped("v1")
         v1.get("devices", ":deviceLibraryIdentifier", "registrations", passTypeIdentifier, use: self.updatablePasses)
         v1.post("log", use: self.logMessage)
         v1.post("passes", passTypeIdentifier, ":passSerial", "personalize", use: self.personalizedPass)
 
-        let v1auth = v1.grouped(ApplePassMiddleware<P>())
+        let v1auth = v1.grouped(ApplePassMiddleware<PassType>())
         v1auth.post("devices", ":deviceLibraryIdentifier", "registrations", passTypeIdentifier, ":passSerial", use: self.registerPass)
         v1auth.get("passes", passTypeIdentifier, ":passSerial", use: self.updatedPass)
         v1auth.delete("devices", ":deviceLibraryIdentifier", "registrations", passTypeIdentifier, ":passSerial", use: self.unregisterPass)
@@ -33,39 +33,39 @@ extension PassesServiceCustom: RouteCollection {
         }
         let deviceLibraryIdentifier = req.parameters.get("deviceLibraryIdentifier")!
         guard
-            let pass = try await P.query(on: req.db)
-                .filter(\._$typeIdentifier == PD.typeIdentifier)
+            let pass = try await PassType.query(on: req.db)
+                .filter(\._$typeIdentifier == PassDataType.typeIdentifier)
                 .filter(\._$id == serial)
                 .first()
         else {
             throw Abort(.notFound)
         }
 
-        let device = try await D.query(on: req.db)
+        let device = try await DeviceType.query(on: req.db)
             .filter(\._$libraryIdentifier == deviceLibraryIdentifier)
             .filter(\._$pushToken == pushToken)
             .first()
         if let device = device {
             return try await Self.createRegistration(device: device, pass: pass, db: req.db)
         } else {
-            let newDevice = D(libraryIdentifier: deviceLibraryIdentifier, pushToken: pushToken)
+            let newDevice = DeviceType(libraryIdentifier: deviceLibraryIdentifier, pushToken: pushToken)
             try await newDevice.create(on: req.db)
             return try await Self.createRegistration(device: newDevice, pass: pass, db: req.db)
         }
     }
 
-    private static func createRegistration(device: D, pass: P, db: any Database) async throws -> HTTPStatus {
-        let r = try await R.for(
+    private static func createRegistration(device: DeviceType, pass: PassType, db: any Database) async throws -> HTTPStatus {
+        let r = try await PassesRegistrationType.for(
             deviceLibraryIdentifier: device.libraryIdentifier,
             typeIdentifier: pass.typeIdentifier,
             on: db
         )
-        .filter(P.self, \._$id == pass.requireID())
+        .filter(PassType.self, \._$id == pass.requireID())
         .first()
         // If the registration already exists, docs say to return 200 OK
         if r != nil { return .ok }
 
-        let registration = R()
+        let registration = PassesRegistrationType()
         registration._$pass.id = try pass.requireID()
         registration._$device.id = try device.requireID()
         try await registration.create(on: db)
@@ -77,14 +77,14 @@ extension PassesServiceCustom: RouteCollection {
 
         let deviceLibraryIdentifier = req.parameters.get("deviceLibraryIdentifier")!
 
-        var query = R.for(
+        var query = PassesRegistrationType.for(
             deviceLibraryIdentifier: deviceLibraryIdentifier,
-            typeIdentifier: PD.typeIdentifier,
+            typeIdentifier: PassDataType.typeIdentifier,
             on: req.db
         )
         if let since: TimeInterval = req.query["passesUpdatedSince"] {
             let when = Date(timeIntervalSince1970: since)
-            query = query.filter(P.self, \._$updatedAt > when)
+            query = query.filter(PassType.self, \._$updatedAt > when)
         }
 
         let registrations = try await query.all()
@@ -117,9 +117,9 @@ extension PassesServiceCustom: RouteCollection {
             throw Abort(.badRequest)
         }
         guard
-            let pass = try await P.query(on: req.db)
+            let pass = try await PassType.query(on: req.db)
                 .filter(\._$id == id)
-                .filter(\._$typeIdentifier == PD.typeIdentifier)
+                .filter(\._$typeIdentifier == PassDataType.typeIdentifier)
                 .first()
         else {
             throw Abort(.notFound)
@@ -130,7 +130,7 @@ extension PassesServiceCustom: RouteCollection {
         }
 
         guard
-            let passData = try await PD.query(on: req.db)
+            let passData = try await PassDataType.query(on: req.db)
                 .filter(\._$pass.$id == id)
                 .first()
         else {
@@ -157,12 +157,12 @@ extension PassesServiceCustom: RouteCollection {
         let deviceLibraryIdentifier = req.parameters.get("deviceLibraryIdentifier")!
 
         guard
-            let r = try await R.for(
+            let r = try await PassesRegistrationType.for(
                 deviceLibraryIdentifier: deviceLibraryIdentifier,
-                typeIdentifier: PD.typeIdentifier,
+                typeIdentifier: PassDataType.typeIdentifier,
                 on: req.db
             )
-            .filter(P.self, \._$id == passId)
+            .filter(PassType.self, \._$id == passId)
             .first()
         else {
             throw Abort(.notFound)
@@ -188,9 +188,9 @@ extension PassesServiceCustom: RouteCollection {
             throw Abort(.badRequest)
         }
         guard
-            try await P.query(on: req.db)
+            try await PassType.query(on: req.db)
                 .filter(\._$id == id)
-                .filter(\._$typeIdentifier == PD.typeIdentifier)
+                .filter(\._$typeIdentifier == PassDataType.typeIdentifier)
                 .first() != nil
         else {
             throw Abort(.notFound)
@@ -198,7 +198,7 @@ extension PassesServiceCustom: RouteCollection {
 
         let userInfo = try req.content.decode(PersonalizationDictionaryDTO.self)
 
-        let personalization = I()
+        let personalization = PersonalizationInfoType()
         personalization.fullName = userInfo.requiredPersonalizationInfo.fullName
         personalization.givenName = userInfo.requiredPersonalizationInfo.givenName
         personalization.familyName = userInfo.requiredPersonalizationInfo.familyName

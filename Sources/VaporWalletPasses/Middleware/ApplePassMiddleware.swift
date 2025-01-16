@@ -30,14 +30,14 @@ import FluentKit
 import FluentWalletPasses
 import Vapor
 
-struct ApplePassMiddleware<P: PassModel>: AsyncMiddleware {
+struct ApplePassMiddleware<PassType: PassModel>: AsyncMiddleware {
     func respond(
         to request: Request, chainingTo next: any AsyncResponder
     ) async throws -> Response {
         guard
             let id = request.parameters.get("passSerial", as: UUID.self),
             let authToken = request.headers["Authorization"].first?.replacingOccurrences(of: "ApplePass ", with: ""),
-            (try await P.query(on: request.db)
+            (try await PassType.query(on: request.db)
                 .filter(\._$id == id)
                 .filter(\._$authenticationToken == authToken)
                 .first()) != nil

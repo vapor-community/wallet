@@ -3,9 +3,9 @@ import FluentWalletOrders
 import Foundation
 
 extension OrdersService: AsyncModelMiddleware {
-    public func create(model: OD, on db: any Database, next: any AnyAsyncModelResponder) async throws {
+    public func create(model: OrderDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {
         let order = Order(
-            typeIdentifier: OD.typeIdentifier,
+            typeIdentifier: OrderDataType.typeIdentifier,
             authenticationToken: Data([UInt8].random(count: 12)).base64EncodedString()
         )
         try await order.save(on: db)
@@ -13,7 +13,7 @@ extension OrdersService: AsyncModelMiddleware {
         try await next.create(model, on: db)
     }
 
-    public func update(model: OD, on db: any Database, next: any AnyAsyncModelResponder) async throws {
+    public func update(model: OrderDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {
         let order = try await model._$order.get(on: db)
         order.updatedAt = Date.now
         try await order.save(on: db)
@@ -23,9 +23,9 @@ extension OrdersService: AsyncModelMiddleware {
 }
 
 extension OrdersServiceCustom: AsyncModelMiddleware {
-    public func create(model: OD, on db: any Database, next: any AnyAsyncModelResponder) async throws {
-        let order = O(
-            typeIdentifier: OD.typeIdentifier,
+    public func create(model: OrderDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {
+        let order = OrderType(
+            typeIdentifier: OrderDataType.typeIdentifier,
             authenticationToken: Data([UInt8].random(count: 12)).base64EncodedString()
         )
         try await order.save(on: db)
@@ -33,7 +33,7 @@ extension OrdersServiceCustom: AsyncModelMiddleware {
         try await next.create(model, on: db)
     }
 
-    public func update(model: OD, on db: any Database, next: any AnyAsyncModelResponder) async throws {
+    public func update(model: OrderDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {
         let order = try await model._$order.get(on: db)
         order.updatedAt = Date.now
         try await order.save(on: db)

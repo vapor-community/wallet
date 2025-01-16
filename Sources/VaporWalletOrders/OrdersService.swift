@@ -3,8 +3,8 @@ import FluentWalletOrders
 import Vapor
 
 /// The main class that handles Wallet orders.
-public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD.OrderType {
-    private let service: OrdersServiceCustom<OD, Order, OrdersDevice, OrdersRegistration>
+public final class OrdersService<OrderDataType: OrderDataModel>: Sendable where Order == OrderDataType.OrderType {
+    private let service: OrdersServiceCustom<OrderDataType, Order, OrdersDevice, OrdersRegistration>
 
     /// Initializes the service and registers all the routes required for Apple Wallet to work.
     ///
@@ -40,7 +40,7 @@ public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD
     ///   - db: The `Database` to use.
     ///
     /// - Returns: The generated order content.
-    public func build(order: OD, on db: any Database) async throws -> Data {
+    public func build(order: OrderDataType, on db: any Database) async throws -> Data {
         try await service.build(order: order, on: db)
     }
 
@@ -58,7 +58,7 @@ public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD
     /// - Parameters:
     ///   - order: The order to send the notifications for.
     ///   - db: The `Database` to use.
-    public func sendPushNotifications(for order: OD, on db: any Database) async throws {
+    public func sendPushNotifications(for order: OrderDataType, on db: any Database) async throws {
         try await service.sendPushNotifications(for: order, on: db)
     }
 }

@@ -12,18 +12,24 @@ import Zip
 /// Class to handle ``PassesService``.
 ///
 /// The generics should be passed in this order:
-/// - Pass Data Model
-/// - Pass Type
-/// - Personalization Info Type
-/// - Device Type
-/// - Registration Type
+/// - `PassDataModel`
+/// - `PassModel`
+/// - `PersonalizationInfoModel`
+/// - `DeviceModel`
+/// - `PassesRegistrationModel`
 public final class PassesServiceCustom<
-    PD: PassDataModel,
-    P: PassModel,
-    I: PersonalizationInfoModel,
-    D: DeviceModel,
-    R: PassesRegistrationModel
->: Sendable where P == PD.PassType, P == R.PassType, D == R.DeviceType, I.PassType == P {
+    PassDataType: PassDataModel,
+    PassType: PassModel,
+    PersonalizationInfoType: PersonalizationInfoModel,
+    DeviceType: DeviceModel,
+    PassesRegistrationType: PassesRegistrationModel
+>: Sendable
+where
+    PassDataType.PassType == PassType,
+    PersonalizationInfoType.PassType == PassType,
+    PassesRegistrationType.PassType == PassType,
+    PassesRegistrationType.DeviceType == DeviceType
+{
     private unowned let app: Application
     let builder: PassBuilder
 
@@ -95,11 +101,11 @@ extension PassesServiceCustom {
     /// - Parameters:
     ///   - passData: The pass to send the notifications for.
     ///   - db: The `Database` to use.
-    public func sendPushNotifications(for passData: PD, on db: any Database) async throws {
+    public func sendPushNotifications(for passData: PassDataType, on db: any Database) async throws {
         try await self.sendPushNotifications(for: passData._$pass.get(on: db), on: db)
     }
 
-    func sendPushNotifications(for pass: P, on db: any Database) async throws {
+    func sendPushNotifications(for pass: PassType, on db: any Database) async throws {
         let registrations = try await Self.registrations(for: pass, on: db)
         for reg in registrations {
             let backgroundNotification = APNSBackgroundNotification(
@@ -119,16 +125,16 @@ extension PassesServiceCustom {
         }
     }
 
-    private static func registrations(for pass: P, on db: any Database) async throws -> [R] {
+    private static func registrations(for pass: PassType, on db: any Database) async throws -> [PassesRegistrationType] {
         // This could be done by enforcing the caller to have a Siblings property wrapper,
         // but there's not really any value to forcing that on them when we can just do the query ourselves like this.
-        try await R.query(on: db)
+        try await PassesRegistrationType.query(on: db)
             .join(parent: \._$pass)
             .join(parent: \._$device)
             .with(\._$pass)
             .with(\._$device)
-            .filter(P.self, \._$typeIdentifier == PD.typeIdentifier)
-            .filter(P.self, \._$id == pass.requireID())
+            .filter(PassType.self, \._$typeIdentifier == PassDataType.typeIdentifier)
+            .filter(PassType.self, \._$id == pass.requireID())
             .all()
     }
 }
@@ -142,7 +148,7 @@ extension PassesServiceCustom {
     ///   - db: The `Database` to use.
     ///
     /// - Returns: The generated pass content as `Data`.
-    public func build(pass: PD, on db: any Database) async throws -> Data {
+    public func build(pass: PassDataType, on db: any Database) async throws -> Data {
         try await self.builder.build(
             pass: pass.passJSON(on: db),
             sourceFilesDirectoryPath: pass.sourceFilesDirectoryPath(on: db),
@@ -161,7 +167,7 @@ extension PassesServiceCustom {
     ///   - db: The `Database` to use.
     ///
     /// - Returns: The bundle of passes as `Data`.
-    public func build(passes: [PD], on db: any Database) async throws -> Data {
+    public func build(passes: [PassDataType], on db: any Database) async throws -> Data {
         guard passes.count > 1 && passes.count <= 10 else {
             throw WalletPassesError.invalidNumberOfPasses
         }

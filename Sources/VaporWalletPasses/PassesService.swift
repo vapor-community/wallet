@@ -31,8 +31,8 @@ import FluentWalletPasses
 import Vapor
 
 /// The main class that handles Apple Wallet passes.
-public final class PassesService<PD: PassDataModel>: Sendable where Pass == PD.PassType {
-    private let service: PassesServiceCustom<PD, Pass, PersonalizationInfo, PassesDevice, PassesRegistration>
+public final class PassesService<PassDataType: PassDataModel>: Sendable where Pass == PassDataType.PassType {
+    private let service: PassesServiceCustom<PassDataType, Pass, PersonalizationInfo, PassesDevice, PassesRegistration>
 
     /// Initializes the service and registers all the routes required for Apple Wallet to work.
     ///
@@ -68,7 +68,7 @@ public final class PassesService<PD: PassDataModel>: Sendable where Pass == PD.P
     ///   - db: The `Database` to use.
     ///
     /// - Returns: The generated pass content as `Data`.
-    public func build(pass: PD, on db: any Database) async throws -> Data {
+    public func build(pass: PassDataType, on db: any Database) async throws -> Data {
         try await service.build(pass: pass, on: db)
     }
 
@@ -83,7 +83,7 @@ public final class PassesService<PD: PassDataModel>: Sendable where Pass == PD.P
     ///   - db: The `Database` to use.
     ///
     /// - Returns: The bundle of passes as `Data`.
-    public func build(passes: [PD], on db: any Database) async throws -> Data {
+    public func build(passes: [PassDataType], on db: any Database) async throws -> Data {
         try await service.build(passes: passes, on: db)
     }
 
@@ -106,7 +106,7 @@ public final class PassesService<PD: PassDataModel>: Sendable where Pass == PD.P
     /// - Parameters:
     ///   - pass: The pass to send the notifications for.
     ///   - db: The `Database` to use.
-    public func sendPushNotifications(for pass: PD, on db: any Database) async throws {
+    public func sendPushNotifications(for pass: PassDataType, on db: any Database) async throws {
         try await service.sendPushNotifications(for: pass, on: db)
     }
 }
