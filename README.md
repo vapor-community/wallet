@@ -39,7 +39,7 @@ Add the `VaporWalletPasses` product to your target's dependencies:
 .product(name: "VaporWalletPasses", package: "wallet")
 ```
 
-See the framework's [documentation](https://swiftpackageindex.com/vapor-community/wallet/documentation/passes) for information and guides on how to use it.
+See the framework's [documentation](https://swiftpackageindex.com/vapor-community/wallet/documentation/vaporwalletpasses) for information and guides on how to use it.
 
 For information on Apple Wallet passes, see the [Apple Developer Documentation](https://developer.apple.com/documentation/walletpasses).
 
@@ -54,6 +54,6 @@ Add the `VaporWalletOrders` product to your target's dependencies:
 .product(name: "VaporWalletOrders", package: "wallet")
 ```
 
-See the framework's [documentation](https://swiftpackageindex.com/vapor-community/wallet/documentation/orders) for information and guides on how to use it.
+See the framework's [documentation](https://swiftpackageindex.com/vapor-community/wallet/documentation/vaporwalletorders) for information and guides on how to use it.
 
 For information on Apple Wallet orders, see the [Apple Developer Documentation](https://developer.apple.com/documentation/walletorders).
