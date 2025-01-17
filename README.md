@@ -23,7 +23,7 @@
 Use the SPM string to easily include the dependendency in your `Package.swift` file.
 
 ```swift
-.package(url: "https://github.com/vapor-community/wallet.git", from: "0.6.0")
+.package(url: "https://github.com/vapor-community/wallet.git", from: "0.7.0")
 ```
 
 > Note: This package is made for Vapor 4.
