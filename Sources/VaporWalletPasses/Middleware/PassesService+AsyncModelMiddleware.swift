@@ -3,9 +3,9 @@ import FluentWalletPasses
 import Foundation
 
 extension PassesService: AsyncModelMiddleware {
-    public func create(model: PD, on db: any Database, next: any AnyAsyncModelResponder) async throws {
+    public func create(model: PassDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {
         let pass = Pass(
-            typeIdentifier: PD.typeIdentifier,
+            typeIdentifier: PassDataType.typeIdentifier,
             authenticationToken: Data([UInt8].random(count: 12)).base64EncodedString()
         )
         try await pass.save(on: db)
@@ -13,7 +13,7 @@ extension PassesService: AsyncModelMiddleware {
         try await next.create(model, on: db)
     }
 
-    public func update(model: PD, on db: any Database, next: any AnyAsyncModelResponder) async throws {
+    public func update(model: PassDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {
         let pass = try await model._$pass.get(on: db)
         pass.updatedAt = Date.now
         try await pass.save(on: db)
@@ -23,9 +23,9 @@ extension PassesService: AsyncModelMiddleware {
 }
 
 extension PassesServiceCustom: AsyncModelMiddleware {
-    public func create(model: PD, on db: any Database, next: any AnyAsyncModelResponder) async throws {
-        let pass = P(
-            typeIdentifier: PD.typeIdentifier,
+    public func create(model: PassDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {
+        let pass = PassType(
+            typeIdentifier: PassDataType.typeIdentifier,
             authenticationToken: Data([UInt8].random(count: 12)).base64EncodedString()
         )
         try await pass.save(on: db)
@@ -33,7 +33,7 @@ extension PassesServiceCustom: AsyncModelMiddleware {
         try await next.create(model, on: db)
     }
 
-    public func update(model: PD, on db: any Database, next: any AnyAsyncModelResponder) async throws {
+    public func update(model: PassDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {
         let pass = try await model._$pass.get(on: db)
         pass.updatedAt = Date.now
         try await pass.save(on: db)

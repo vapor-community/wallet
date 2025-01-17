@@ -22,14 +22,15 @@ func withApp(
 
         let ordersService = try OrdersService<OrderData>(
             app: app,
-            pushRoutesMiddleware: SecretMiddleware(secret: "foo"),
-            logger: app.logger,
             pemWWDRCertificate: TestCertificate.pemWWDRCertificate,
             pemCertificate: useEncryptedKey ? TestCertificate.encryptedPemCertificate : TestCertificate.pemCertificate,
             pemPrivateKey: useEncryptedKey ? TestCertificate.encryptedPemPrivateKey : TestCertificate.pemPrivateKey,
             pemPrivateKeyPassword: useEncryptedKey ? "password" : nil
         )
+
         app.databases.middleware.use(ordersService, on: .sqlite)
+
+        try app.grouped("api", "orders").register(collection: ordersService)
 
         Zip.addCustomFileExtension("order")
 

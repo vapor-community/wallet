@@ -10,8 +10,6 @@ The pass data model will be used to generate the `pass.json` file contents.
 
 See [`FluentWalletPasses`'s documentation on `PassDataModel`](https://swiftpackageindex.com/fpseverino/fluent-wallet/documentation/fluentwalletpasses/passdatamodel) to understand how to implement the pass data model and do it before continuing with this guide.
 
-> Important: You **must** add `api/passes/` to the `webServiceURL` key of the `PassJSON.Properties` struct.
-
 The pass you distribute to a user is a signed bundle that contains the `pass.json` file, images and optional localizations.
 The `VaporWalletPasses` framework provides the ``PassesService`` class that handles the creation of the pass JSON file and the signing of the pass bundle.
 The ``PassesService`` class also provides methods to send push notifications to all devices registered when you update a pass, and all the routes that Apple Wallet uses to retrieve passes.
@@ -19,7 +17,8 @@ The ``PassesService`` class also provides methods to send push notifications to 
 ### Initialize the Service
 
 After creating the pass data model and the pass JSON data struct, initialize the ``PassesService`` inside the `configure.swift` file.
-This will implement all of the routes that Apple Wallet expects to exist on your server.
+
+To implement all of the routes that Apple Wallet expects to exist on your server, don't forget to register them using the ``PassesService`` object as a route collection.
 
 > Tip: Obtaining the three certificates files could be a bit tricky. You could get some guidance from [this guide](https://github.com/alexandercerutti/passkit-generator/wiki/Generating-Certificates) and [this video](https://www.youtube.com/watch?v=rJZdPoXHtzI).
 
@@ -36,17 +35,9 @@ public func configure(_ app: Application) async throws {
         pemCertificate: Environment.get("PEM_CERTIFICATE")!,
         pemPrivateKey: Environment.get("PEM_PRIVATE_KEY")!
     )
+
+    try app.grouped("api", "passes").register(collection: passesService)
 }
-```
-
-If you wish to include routes specifically for sending push notifications to updated passes, you can also pass to the ``PassesService`` initializer whatever `Middleware` you want Vapor to use to authenticate the two routes. Doing so will add two routes, the first one sends notifications and the second one retrieves a list of push tokens which would be sent a notification.
-
-```http
-POST https://example.com/api/passes/v1/push/{passTypeIdentifier}/{passSerial} HTTP/2
-```
-
-```http
-GET https://example.com/api/passes/v1/push/{passTypeIdentifier}/{passSerial} HTTP/2
 ```
 
 ### Custom Implementation of PassesService
@@ -73,6 +64,8 @@ public func configure(_ app: Application) async throws {
         pemCertificate: Environment.get("PEM_CERTIFICATE")!,
         pemPrivateKey: Environment.get("PEM_PRIVATE_KEY")!
     )
+
+    try app.grouped("api", "passes").register(collection: passesService)
 }
 ```
 
@@ -124,7 +117,7 @@ struct PassesController: RouteCollection {
 Then use the object inside your route handlers to generate the pass bundle with the ``PassesService/build(pass:on:)`` method and distribute it with the "`application/vnd.apple.pkpass`" MIME type.
 
 ```swift
-fileprivate func passHandler(_ req: Request) async throws -> Response {
+func passHandler(_ req: Request) async throws -> Response {
     ...
     guard let pass = try await PassData.query(on: req.db)
         .filter(...)
@@ -153,7 +146,7 @@ The MIME type for a bundle of passes is "`application/vnd.apple.pkpasses`".
 > Note: You can have up to 10 passes or 150 MB for a bundle of passes.
 
 ```swift
-fileprivate func passesHandler(_ req: Request) async throws -> Response {
+func passesHandler(_ req: Request) async throws -> Response {
     ...
     let passes = try await PassData.query(on: req.db).all()
 

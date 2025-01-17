@@ -3,15 +3,13 @@ import FluentWalletOrders
 import Vapor
 
 /// The main class that handles Wallet orders.
-public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD.OrderType {
-    private let service: OrdersServiceCustom<OD, Order, OrdersDevice, OrdersRegistration>
+public final class OrdersService<OrderDataType: OrderDataModel>: Sendable where Order == OrderDataType.OrderType {
+    private let service: OrdersServiceCustom<OrderDataType, Order, OrdersDevice, OrdersRegistration>
 
     /// Initializes the service and registers all the routes required for Apple Wallet to work.
     ///
     /// - Parameters:
     ///   - app: The `Vapor.Application` to use in route handlers and APNs.
-    ///   - pushRoutesMiddleware: The `Middleware` to use for push notification routes. If `nil`, push routes will not be registered.
-    ///   - logger: The `Logger` to use.
     ///   - pemWWDRCertificate: Apple's WWDR.pem certificate in PEM format.
     ///   - pemCertificate: The PEM Certificate for signing orders.
     ///   - pemPrivateKey: The PEM Certificate's private key for signing orders.
@@ -19,8 +17,6 @@ public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD
     ///   - openSSLPath: The location of the `openssl` command as a file path.
     public init(
         app: Application,
-        pushRoutesMiddleware: (any Middleware)? = nil,
-        logger: Logger? = nil,
         pemWWDRCertificate: String,
         pemCertificate: String,
         pemPrivateKey: String,
@@ -29,8 +25,6 @@ public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD
     ) throws {
         self.service = try .init(
             app: app,
-            pushRoutesMiddleware: pushRoutesMiddleware,
-            logger: logger,
             pemWWDRCertificate: pemWWDRCertificate,
             pemCertificate: pemCertificate,
             pemPrivateKey: pemPrivateKey,
@@ -46,7 +40,7 @@ public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD
     ///   - db: The `Database` to use.
     ///
     /// - Returns: The generated order content.
-    public func build(order: OD, on db: any Database) async throws -> Data {
+    public func build(order: OrderDataType, on db: any Database) async throws -> Data {
         try await service.build(order: order, on: db)
     }
 
@@ -64,7 +58,13 @@ public final class OrdersService<OD: OrderDataModel>: Sendable where Order == OD
     /// - Parameters:
     ///   - order: The order to send the notifications for.
     ///   - db: The `Database` to use.
-    public func sendPushNotifications(for order: OD, on db: any Database) async throws {
+    public func sendPushNotifications(for order: OrderDataType, on db: any Database) async throws {
         try await service.sendPushNotifications(for: order, on: db)
+    }
+}
+
+extension OrdersService: RouteCollection {
+    public func boot(routes: any RoutesBuilder) throws {
+        try service.boot(routes: routes)
     }
 }
