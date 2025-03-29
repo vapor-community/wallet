@@ -17,6 +17,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/apns.git", from: "4.2.0"),
         // used in tests
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.8.0"),
+        .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.0"),
     ],
     targets: [
         .target(
@@ -25,6 +26,7 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "VaporAPNS", package: "apns"),
+                .product(name: "Zip", package: "Zip"),
             ],
             swiftSettings: swiftSettings
         ),
@@ -34,6 +36,7 @@ let package = Package(
             dependencies: [
                 .target(name: "VaporWallet"),
                 .product(name: "FluentWalletPasses", package: "fluent-wallet"),
+                .product(name: "Zip", package: "Zip")
             ],
             swiftSettings: swiftSettings
         ),
@@ -43,6 +46,7 @@ let package = Package(
                 .target(name: "VaporWalletPasses"),
                 .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "Zip", package: "Zip")
             ],
             resources: [
                 .copy("SourceFiles")
@@ -64,6 +68,7 @@ let package = Package(
                 .target(name: "VaporWalletOrders"),
                 .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "Zip", package: "Zip")
             ],
             resources: [
                 .copy("SourceFiles")
