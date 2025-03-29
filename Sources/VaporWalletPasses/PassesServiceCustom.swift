@@ -174,11 +174,18 @@ extension PassesServiceCustom {
 
         var files: [ArchiveFile] = []
         for (i, pass) in passes.enumerated() {
-            try await files.append(ArchiveFile(filename: "pass\(i).pkpass", data: self.build(pass: pass, on: db)))
+            try await files
+                .append(
+                    ArchiveFile(
+                        filename: "pass\(i).pkpass",
+                        data: self.build(pass: pass, on: db) as NSData,
+                        modifiedTime: nil
+                    )
+                )
         }
 
         let zipFile = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).pkpass")
-        try Zip.zipData(archiveFiles: files, zipFilePath: zipFile)
+        try Zip.zipData(archiveFiles: files, zipFilePath: zipFile, password: nil, progress: nil)
         return try Data(contentsOf: zipFile)
     }
 }

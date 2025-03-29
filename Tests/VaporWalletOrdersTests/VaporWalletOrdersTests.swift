@@ -23,7 +23,7 @@ struct VaporWalletOrdersTests {
             let orderURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).order")
             try data.write(to: orderURL)
             let orderFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-            try Zip.unzipFile(orderURL, destination: orderFolder)
+            try Zip.unzipFile(orderURL, destination: orderFolder, overwrite: true, password: nil, progress: nil)
 
             #expect(FileManager.default.fileExists(atPath: orderFolder.path.appending("/signature")))
 

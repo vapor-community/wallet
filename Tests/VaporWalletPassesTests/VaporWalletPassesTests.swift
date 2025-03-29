@@ -23,7 +23,7 @@ struct VaporWalletPassesTests {
             let passURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).pkpass")
             try data.write(to: passURL)
             let passFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-            try Zip.unzipFile(passURL, destination: passFolder)
+            try Zip.unzipFile(passURL, destination: passFolder, overwrite: true, password: nil, progress: nil)
 
             #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/signature")))
 
@@ -84,7 +84,7 @@ struct VaporWalletPassesTests {
             let passURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).pkpass")
             try data.write(to: passURL)
             let passFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-            try Zip.unzipFile(passURL, destination: passFolder)
+            try Zip.unzipFile(passURL, destination: passFolder, overwrite: true, password: nil, progress: nil)
 
             #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/signature")))
 
