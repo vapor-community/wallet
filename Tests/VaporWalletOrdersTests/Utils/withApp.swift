@@ -5,7 +5,6 @@ import Testing
 import Vapor
 import VaporWalletOrders
 import WalletOrders
-import Zip
 
 func withApp(
     useEncryptedKey: Bool = false,
@@ -31,8 +30,6 @@ func withApp(
         app.databases.middleware.use(ordersService, on: .sqlite)
 
         try app.grouped("api", "orders").register(collection: ordersService)
-
-        Zip.addCustomFileExtension("order")
 
         try await body(app, ordersService)
 

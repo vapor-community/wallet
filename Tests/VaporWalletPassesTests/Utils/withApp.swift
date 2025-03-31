@@ -5,7 +5,6 @@ import Testing
 import Vapor
 import VaporWalletPasses
 import WalletPasses
-import Zip
 
 func withApp(
     useEncryptedKey: Bool = false,
@@ -31,8 +30,6 @@ func withApp(
         app.databases.middleware.use(passesService, on: .sqlite)
 
         try app.grouped("api", "passes").register(collection: passesService)
-
-        Zip.addCustomFileExtension("pkpass")
 
         try await body(app, passesService)
 

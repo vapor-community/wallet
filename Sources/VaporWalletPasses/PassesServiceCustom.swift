@@ -7,7 +7,7 @@ import Vapor
 import VaporAPNS
 import VaporWallet
 import WalletPasses
-import Zip
+import ZipArchive
 
 /// Class to handle ``PassesService``.
 ///
@@ -172,13 +172,10 @@ extension PassesServiceCustom {
             throw WalletPassesError.invalidNumberOfPasses
         }
 
-        var files: [ArchiveFile] = []
+        let writer = ZipArchiveWriter()
         for (i, pass) in passes.enumerated() {
-            try await files.append(ArchiveFile(filename: "pass\(i).pkpass", data: self.build(pass: pass, on: db)))
+            try await writer.writeFile(filename: "pass\(i).pkpass", contents: Array(self.build(pass: pass, on: db)))
         }
-
-        let zipFile = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).pkpass")
-        try Zip.zipData(archiveFiles: files, zipFilePath: zipFile)
-        return try Data(contentsOf: zipFile)
+        return try Data(writer.finalizeBuffer())
     }
 }

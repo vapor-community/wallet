@@ -2,7 +2,7 @@ import FluentWalletPasses
 import Testing
 import VaporTesting
 import WalletPasses
-import Zip
+import ZipArchive
 
 @testable import VaporWalletPasses
 
@@ -18,32 +18,27 @@ struct VaporWalletPassesTests {
             try await passData.create(on: app.db)
             let pass = try await passData.$pass.get(on: app.db)
 
-            let data = try await passesService.build(pass: passData, on: app.db)
+            let reader = try await ZipArchiveReader(buffer: passesService.build(pass: passData, on: app.db))
+            let directory = try reader.readDirectory()
 
-            let passURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).pkpass")
-            try data.write(to: passURL)
-            let passFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-            try Zip.unzipFile(passURL, destination: passFolder)
+            #expect(directory.contains { $0.filename == "signature" })
 
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/signature")))
+            #expect(directory.contains { $0.filename == "logo.png" })
+            #expect(directory.contains { $0.filename == "personalizationLogo.png" })
+            #expect(directory.contains { $0.filename == "it-IT.lproj/logo.png" })
+            #expect(directory.contains { $0.filename == "it-IT.lproj/personalizationLogo.png" })
 
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/logo.png")))
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/personalizationLogo.png")))
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/it-IT.lproj/logo.png")))
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/it-IT.lproj/personalizationLogo.png")))
-
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/pass.json")))
-            let passJSONData = try String(contentsOfFile: passFolder.path.appending("/pass.json")).data(using: .utf8)
-            let passJSON = try decoder.decode(PassJSONData.self, from: passJSONData!)
-            #expect(passJSON.authenticationToken == pass.authenticationToken)
+            let passBytes = try reader.readFile(#require(directory.first { $0.filename == "pass.json" }))
+            let roundTrippedPass = try decoder.decode(PassJSONData.self, from: Data(passBytes))
+            #expect(roundTrippedPass.authenticationToken == pass.authenticationToken)
             let passID = try pass.requireID().uuidString
-            #expect(passJSON.serialNumber == passID)
-            #expect(passJSON.description == passData.title)
+            #expect(roundTrippedPass.serialNumber == passID)
+            #expect(roundTrippedPass.description == passData.title)
 
-            let manifestJSONData = try String(contentsOfFile: passFolder.path.appending("/manifest.json")).data(using: .utf8)
-            let manifestJSON = try decoder.decode([String: String].self, from: manifestJSONData!)
-            let iconData = try Data(contentsOf: passFolder.appendingPathComponent("/icon.png"))
-            #expect(manifestJSON["icon.png"] == Insecure.SHA1.hash(data: iconData).hex)
+            let manifestJSONBytes = try reader.readFile(#require(directory.first { $0.filename == "manifest.json" }))
+            let manifestJSON = try decoder.decode([String: String].self, from: Data(manifestJSONBytes))
+            let iconBytes = try reader.readFile(#require(directory.first { $0.filename == "icon.png" }))
+            #expect(manifestJSON["icon.png"] == Insecure.SHA1.hash(data: iconBytes).hex)
             #expect(manifestJSON["logo.png"] != nil)
             #expect(manifestJSON["personalizationLogo.png"] != nil)
             #expect(manifestJSON["it-IT.lproj/logo.png"] != nil)
@@ -79,36 +74,31 @@ struct VaporWalletPassesTests {
             try await passData.create(on: app.db)
             let pass = try await passData.$pass.get(on: app.db)
 
-            let data = try await passesService.build(pass: passData, on: app.db)
+            let reader = try await ZipArchiveReader(buffer: passesService.build(pass: passData, on: app.db))
+            let directory = try reader.readDirectory()
 
-            let passURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).pkpass")
-            try data.write(to: passURL)
-            let passFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-            try Zip.unzipFile(passURL, destination: passFolder)
+            #expect(directory.contains { $0.filename == "signature" })
 
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/signature")))
+            #expect(directory.contains { $0.filename == "logo.png" })
+            #expect(directory.contains { $0.filename == "personalizationLogo.png" })
+            #expect(directory.contains { $0.filename == "it-IT.lproj/logo.png" })
+            #expect(directory.contains { $0.filename == "it-IT.lproj/personalizationLogo.png" })
 
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/logo.png")))
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/personalizationLogo.png")))
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/it-IT.lproj/logo.png")))
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/it-IT.lproj/personalizationLogo.png")))
-
-            #expect(FileManager.default.fileExists(atPath: passFolder.path.appending("/pass.json")))
-            let passJSONData = try String(contentsOfFile: passFolder.path.appending("/pass.json")).data(using: .utf8)
-            let passJSON = try decoder.decode(PassJSONData.self, from: passJSONData!)
-            #expect(passJSON.authenticationToken == pass.authenticationToken)
+            let passBytes = try reader.readFile(#require(directory.first { $0.filename == "pass.json" }))
+            let roundTrippedPass = try decoder.decode(PassJSONData.self, from: Data(passBytes))
+            #expect(roundTrippedPass.authenticationToken == pass.authenticationToken)
             let passID = try pass.requireID().uuidString
-            #expect(passJSON.serialNumber == passID)
-            #expect(passJSON.description == passData.title)
+            #expect(roundTrippedPass.serialNumber == passID)
+            #expect(roundTrippedPass.description == passData.title)
 
-            let personalizationJSONData = try String(contentsOfFile: passFolder.path.appending("/personalization.json")).data(using: .utf8)
-            let personalizationJSON = try decoder.decode(PersonalizationJSON.self, from: personalizationJSONData!)
+            let personalizationJSONBytes = try reader.readFile(#require(directory.first { $0.filename == "personalization.json" }))
+            let personalizationJSON = try decoder.decode(PersonalizationJSON.self, from: Data(personalizationJSONBytes))
             #expect(personalizationJSON.description == "Hello, World!")
 
-            let manifestJSONData = try String(contentsOfFile: passFolder.path.appending("/manifest.json")).data(using: .utf8)
-            let manifestJSON = try decoder.decode([String: String].self, from: manifestJSONData!)
-            let personalizationLogoData = try Data(contentsOf: passFolder.appendingPathComponent("/personalizationLogo.png"))
-            let personalizationLogoHash = Insecure.SHA1.hash(data: personalizationLogoData).hex
+            let manifestJSONBytes = try reader.readFile(#require(directory.first { $0.filename == "manifest.json" }))
+            let manifestJSON = try decoder.decode([String: String].self, from: Data(manifestJSONBytes))
+            let personalizationLogoBytes = try reader.readFile(#require(directory.first { $0.filename == "personalizationLogo.png" }))
+            let personalizationLogoHash = Insecure.SHA1.hash(data: personalizationLogoBytes).hex
             #expect(manifestJSON["personalizationLogo.png"] == personalizationLogoHash)
             #expect(manifestJSON["it-IT.lproj/personalizationLogo.png"] == personalizationLogoHash)
         }
