@@ -2,7 +2,7 @@ import FluentWalletOrders
 import Testing
 import VaporTesting
 import WalletOrders
-import Zip
+import ZipArchive
 
 @testable import VaporWalletOrders
 
@@ -18,29 +18,24 @@ struct VaporWalletOrdersTests {
             try await orderData.create(on: app.db)
             let order = try await orderData.$order.get(on: app.db)
 
-            let data = try await ordersService.build(order: orderData, on: app.db)
+            let reader = try await ZipArchiveReader(buffer: ordersService.build(order: orderData, on: app.db))
+            let directory = try reader.readDirectory()
 
-            let orderURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).order")
-            try data.write(to: orderURL)
-            let orderFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-            try Zip.unzipFile(orderURL, destination: orderFolder)
+            #expect(directory.contains { $0.filename == "signature" })
 
-            #expect(FileManager.default.fileExists(atPath: orderFolder.path.appending("/signature")))
+            #expect(directory.contains { $0.filename == "pet_store_logo.png" })
+            #expect(directory.contains { $0.filename == "it-IT.lproj/pet_store_logo.png" })
 
-            #expect(FileManager.default.fileExists(atPath: orderFolder.path.appending("/pet_store_logo.png")))
-            #expect(FileManager.default.fileExists(atPath: orderFolder.path.appending("/it-IT.lproj/pet_store_logo.png")))
-
-            #expect(FileManager.default.fileExists(atPath: orderFolder.path.appending("/order.json")))
-            let orderJSONData = try String(contentsOfFile: orderFolder.path.appending("/order.json")).data(using: .utf8)
-            let orderJSON = try decoder.decode(OrderJSONData.self, from: orderJSONData!)
-            #expect(orderJSON.authenticationToken == order.authenticationToken)
+            let orderBytes = try reader.readFile(#require(directory.first { $0.filename == "order.json" }))
+            let roundTrippedOrder = try decoder.decode(OrderJSONData.self, from: Data(orderBytes))
+            #expect(roundTrippedOrder.authenticationToken == order.authenticationToken)
             let orderID = try order.requireID().uuidString
-            #expect(orderJSON.orderIdentifier == orderID)
+            #expect(roundTrippedOrder.orderIdentifier == orderID)
 
-            let manifestJSONData = try String(contentsOfFile: orderFolder.path.appending("/manifest.json")).data(using: .utf8)
-            let manifestJSON = try decoder.decode([String: String].self, from: manifestJSONData!)
-            let iconData = try Data(contentsOf: orderFolder.appendingPathComponent("/icon.png"))
-            #expect(manifestJSON["icon.png"] == SHA256.hash(data: iconData).hex)
+            let manifestJSONBytes = try reader.readFile(#require(directory.first { $0.filename == "manifest.json" }))
+            let manifestJSON = try decoder.decode([String: String].self, from: Data(manifestJSONBytes))
+            let iconBytes = try reader.readFile(#require(directory.first { $0.filename == "icon.png" }))
+            #expect(manifestJSON["icon.png"] == SHA256.hash(data: iconBytes).hex)
             #expect(manifestJSON["pet_store_logo.png"] != nil)
             #expect(manifestJSON["it-IT.lproj/pet_store_logo.png"] != nil)
         }

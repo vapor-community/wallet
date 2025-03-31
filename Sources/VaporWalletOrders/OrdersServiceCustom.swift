@@ -7,7 +7,6 @@ import Vapor
 import VaporAPNS
 import VaporWallet
 import WalletOrders
-import Zip
 
 /// Class to handle ``OrdersService``.
 ///
