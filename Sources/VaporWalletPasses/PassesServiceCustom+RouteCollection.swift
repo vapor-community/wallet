@@ -1,7 +1,8 @@
 import Fluent
 import FluentWalletPasses
-import Vapor
+public import Vapor
 import VaporWallet
+import WalletPasses
 
 extension PassesServiceCustom: RouteCollection {
     public func boot(routes: any RoutesBuilder) throws {

@@ -1,9 +1,9 @@
 import APNS
 import APNSCore
-import Fluent
-import FluentWalletOrders
+public import Fluent
+public import FluentWalletOrders
 import NIOSSL
-import Vapor
+public import Vapor
 import VaporAPNS
 import VaporWallet
 import WalletOrders
@@ -45,7 +45,7 @@ where
         pemPrivateKey: String,
         pemPrivateKeyPassword: String? = nil,
         openSSLPath: String = "/usr/bin/openssl"
-    ) throws {
+    ) async throws {
         self.app = app
         self.builder = OrderBuilder(
             pemWWDRCertificate: pemWWDRCertificate,
@@ -79,7 +79,7 @@ where
                 environment: .production
             )
         }
-        app.apns.containers.use(
+        await app.apns.containers.use(
             apnsConfig,
             eventLoopGroupProvider: .shared(app.eventLoopGroup),
             responseDecoder: JSONDecoder(),

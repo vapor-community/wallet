@@ -1,6 +1,6 @@
-import FluentKit
-import FluentWalletOrders
-import Vapor
+public import FluentKit
+public import FluentWalletOrders
+public import Vapor
 
 /// The main class that handles Wallet orders.
 public final class OrdersService<OrderDataType: OrderDataModel>: Sendable where Order == OrderDataType.OrderType {
@@ -22,8 +22,8 @@ public final class OrdersService<OrderDataType: OrderDataModel>: Sendable where 
         pemPrivateKey: String,
         pemPrivateKeyPassword: String? = nil,
         openSSLPath: String = "/usr/bin/openssl"
-    ) throws {
-        self.service = try .init(
+    ) async throws {
+        self.service = try await .init(
             app: app,
             pemWWDRCertificate: pemWWDRCertificate,
             pemCertificate: pemCertificate,

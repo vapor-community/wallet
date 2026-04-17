@@ -13,7 +13,7 @@
         <img src="https://img.shields.io/codecov/c/github/vapor-community/wallet?style=plastic&logo=codecov&label=codecov">
     </a>
     <a href="https://swift.org">
-        <img src="https://design.vapor.codes/images/swift60up.svg" alt="Swift 6.0+">
+        <img src="https://design.vapor.codes/images/swift61up.svg" alt="Swift 6.1+">
     </a>
 </div>
 <br>
@@ -23,7 +23,7 @@
 Use the SPM string to easily include the dependendency in your `Package.swift` file.
 
 ```swift
-.package(url: "https://github.com/vapor-community/wallet.git", from: "0.7.0")
+.package(url: "https://github.com/vapor-community/wallet.git", from: "0.8.0")
 ```
 
 > Note: This package is made for Vapor 4.

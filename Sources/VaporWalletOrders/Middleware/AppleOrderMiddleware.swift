@@ -1,3 +1,4 @@
+import Fluent
 import FluentKit
 import FluentWalletOrders
 import Vapor

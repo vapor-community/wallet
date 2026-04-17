@@ -26,9 +26,9 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
-import FluentKit
-import FluentWalletPasses
-import Vapor
+public import FluentKit
+public import FluentWalletPasses
+public import Vapor
 
 /// The main class that handles Apple Wallet passes.
 public final class PassesService<PassDataType: PassDataModel>: Sendable where Pass == PassDataType.PassType {
@@ -50,8 +50,8 @@ public final class PassesService<PassDataType: PassDataModel>: Sendable where Pa
         pemPrivateKey: String,
         pemPrivateKeyPassword: String? = nil,
         openSSLPath: String = "/usr/bin/openssl"
-    ) throws {
-        self.service = try .init(
+    ) async throws {
+        self.service = try await .init(
             app: app,
             pemWWDRCertificate: pemWWDRCertificate,
             pemCertificate: pemCertificate,

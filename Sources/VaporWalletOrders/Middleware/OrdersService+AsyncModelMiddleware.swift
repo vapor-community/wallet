@@ -1,6 +1,7 @@
-import FluentKit
+public import FluentKit
 import FluentWalletOrders
 import Foundation
+import Vapor
 
 extension OrdersService: AsyncModelMiddleware {
     public func create(model: OrderDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {
