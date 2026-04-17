@@ -14,22 +14,19 @@ public final class OrdersService<OrderDataType: OrderDataModel>: Sendable where 
     ///   - pemCertificate: The PEM Certificate for signing orders.
     ///   - pemPrivateKey: The PEM Certificate's private key for signing orders.
     ///   - pemPrivateKeyPassword: The password to the private key. If the key is not encrypted it must be `nil`. Defaults to `nil`.
-    ///   - openSSLPath: The location of the `openssl` command as a file path.
     public init(
         app: Application,
         pemWWDRCertificate: String,
         pemCertificate: String,
         pemPrivateKey: String,
-        pemPrivateKeyPassword: String? = nil,
-        openSSLPath: String = "/usr/bin/openssl"
+        pemPrivateKeyPassword: String? = nil
     ) async throws {
         self.service = try await .init(
             app: app,
             pemWWDRCertificate: pemWWDRCertificate,
             pemCertificate: pemCertificate,
             pemPrivateKey: pemPrivateKey,
-            pemPrivateKeyPassword: pemPrivateKeyPassword,
-            openSSLPath: openSSLPath
+            pemPrivateKeyPassword: pemPrivateKeyPassword
         )
     }
 
