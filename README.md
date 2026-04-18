@@ -1,8 +1,11 @@
 <div align="center">
 
 <img src="https://avatars.githubusercontent.com/u/26165732?s=200&v=4" width="200" height="200" alt="avatar">
+</div>
 
 # Vapor Wallet
+
+<div align="center">
 
 [![Documentation](https://design.vapor.codes/images/readthedocs.svg)](https://swiftpackageindex.com/vapor-community/wallet/documentation)
 [![Team Chat](https://design.vapor.codes/images/discordchat.svg)](https://vapor.team)
