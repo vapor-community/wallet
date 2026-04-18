@@ -11,7 +11,7 @@ import ZipArchive
 
 @testable import VaporWalletOrders
 
-@Suite("VaporWalletOrders Tests", .serialized)
+@Suite("VaporWalletOrders Tests")
 struct VaporWalletOrdersTests {
     let ordersURI = "/api/orders/v1/"
     let decoder = JSONDecoder()

@@ -13,8 +13,6 @@ func withApp(
 ) async throws {
     let app = try await Application.make(.testing)
     do {
-        try #require(isLoggingConfigured)
-
         app.databases.use(.sqlite(.memory), as: .sqlite)
         PassesService<PassData>.register(migrations: app.migrations, withPersonalization: true)
         app.migrations.add(CreatePassData())

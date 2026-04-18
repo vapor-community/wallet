@@ -11,7 +11,7 @@ import ZipArchive
 
 @testable import VaporWalletPasses
 
-@Suite("VaporWalletPasses Tests", .serialized)
+@Suite("VaporWalletPasses Tests")
 struct VaporWalletPassesTests {
     let passesURI = "/api/passes/v1/"
     let decoder = JSONDecoder()
