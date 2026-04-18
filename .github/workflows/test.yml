@@ -15,6 +15,7 @@ jobs:
       with_release_mode_testing: true
       with_linting: true
       with_musl: true
+      with_tsan: false
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
