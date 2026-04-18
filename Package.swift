@@ -26,6 +26,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
+                .product(name: "FluentWallet", package: "fluent-wallet"),
                 .product(name: "VaporAPNS", package: "apns"),
             ],
             swiftSettings: swiftSettings
