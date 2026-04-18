@@ -1,6 +1,7 @@
 import APNS
 import APNSCore
 public import Fluent
+public import FluentWallet
 public import FluentWalletPasses
 import NIOSSL
 public import Vapor

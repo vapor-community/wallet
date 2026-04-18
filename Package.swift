@@ -14,7 +14,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "4.121.4"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.13.0"),
         .package(url: "https://github.com/fpseverino/swift-wallet.git", from: "1.0.0"),
-        .package(url: "https://github.com/fpseverino/fluent-wallet.git", from: "0.2.0"),
+        .package(url: "https://github.com/fpseverino/fluent-wallet.git", from: "0.3.0"),
         .package(url: "https://github.com/vapor/apns.git", from: "5.0.0"),
         .package(url: "https://github.com/adam-fowler/swift-zip-archive.git", from: "0.6.4"),
         // used in tests
@@ -37,6 +37,7 @@ let package = Package(
             dependencies: [
                 .target(name: "VaporWallet"),
                 .product(name: "WalletPasses", package: "swift-wallet"),
+                .product(name: "FluentWallet", package: "fluent-wallet"),
                 .product(name: "FluentWalletPasses", package: "fluent-wallet"),
                 .product(name: "ZipArchive", package: "swift-zip-archive"),
             ],
@@ -47,6 +48,7 @@ let package = Package(
             dependencies: [
                 .target(name: "VaporWalletPasses"),
                 .product(name: "VaporTesting", package: "vapor"),
+                .product(name: "FluentWallet", package: "fluent-wallet"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "ZipArchive", package: "swift-zip-archive"),
             ],
@@ -61,6 +63,7 @@ let package = Package(
             dependencies: [
                 .target(name: "VaporWallet"),
                 .product(name: "WalletOrders", package: "swift-wallet"),
+                .product(name: "FluentWallet", package: "fluent-wallet"),
                 .product(name: "FluentWalletOrders", package: "fluent-wallet"),
             ],
             swiftSettings: swiftSettings
@@ -70,6 +73,7 @@ let package = Package(
             dependencies: [
                 .target(name: "VaporWalletOrders"),
                 .product(name: "VaporTesting", package: "vapor"),
+                .product(name: "FluentWallet", package: "fluent-wallet"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "ZipArchive", package: "swift-zip-archive"),
             ],

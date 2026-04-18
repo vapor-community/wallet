@@ -1,5 +1,6 @@
 import Fluent
 import FluentKit
+import FluentWallet
 import FluentWalletOrders
 import SystemPackage
 import Testing

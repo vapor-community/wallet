@@ -1,4 +1,5 @@
 import Fluent
+import FluentWallet
 import FluentWalletOrders
 public import Vapor
 import VaporWallet
