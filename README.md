@@ -15,6 +15,19 @@
     <a href="https://swift.org">
         <img src="https://design.vapor.codes/images/swift61up.svg" alt="Swift 6.1+">
     </a>
+<div align="center">
+
+<img src="https://avatars.githubusercontent.com/u/26165732?s=200&v=4" width="200" height="200" alt="avatar">
+
+# Vapor Wallet
+
+[![Documentation](https://design.vapor.codes/images/readthedocs.svg)](https://swiftpackageindex.com/vapor-community/wallet/documentation)
+[![Team Chat](https://design.vapor.codes/images/discordchat.svg)](https://vapor.team)
+[![MIT License](https://design.vapor.codes/images/mitlicense.svg)](./LICENSE)
+[![Continuous Integration](https://img.shields.io/github/actions/workflow/status/vapor-community/wallet/test.yml?event=push&style=plastic&logo=github&label=tests&logoColor=ccc](https://github.com/vapor-community/wallet/actions/workflows/test.yml)
+[![Code Coverage](https://img.shields.io/codecov/c/github/vapor-community/wallet?style=plastic&logo=codecov&label=codecov)](https://codecov.io/github/vapor-community/wallet)
+[![Swift 6.1+](https://design.vapor.codes/images/swift61up.svg)](https://swift.org/)
+
 </div>
 <br>
 
