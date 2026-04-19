@@ -1,4 +1,5 @@
 import FluentWalletPasses
+import Foundation
 import WalletPasses
 
 struct PassJSONData: PassJSON.Properties, Decodable {

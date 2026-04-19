@@ -26,9 +26,9 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
-import FluentKit
-import FluentWalletPasses
-import Vapor
+public import FluentKit
+public import FluentWalletPasses
+public import Vapor
 
 /// The main class that handles Apple Wallet passes.
 public final class PassesService<PassDataType: PassDataModel>: Sendable where Pass == PassDataType.PassType {
@@ -42,22 +42,19 @@ public final class PassesService<PassDataType: PassDataModel>: Sendable where Pa
     ///   - pemCertificate: The PEM Certificate for signing passes.
     ///   - pemPrivateKey: The PEM Certificate's private key for signing passes.
     ///   - pemPrivateKeyPassword: The password to the private key. If the key is not encrypted it must be `nil`. Defaults to `nil`.
-    ///   - openSSLPath: The location of the `openssl` command as a file path.
     public init(
         app: Application,
         pemWWDRCertificate: String,
         pemCertificate: String,
         pemPrivateKey: String,
-        pemPrivateKeyPassword: String? = nil,
-        openSSLPath: String = "/usr/bin/openssl"
-    ) throws {
-        self.service = try .init(
+        pemPrivateKeyPassword: String? = nil
+    ) async throws {
+        self.service = try await .init(
             app: app,
             pemWWDRCertificate: pemWWDRCertificate,
             pemCertificate: pemCertificate,
             pemPrivateKey: pemPrivateKey,
-            pemPrivateKeyPassword: pemPrivateKeyPassword,
-            openSSLPath: openSSLPath
+            pemPrivateKeyPassword: pemPrivateKeyPassword
         )
     }
 

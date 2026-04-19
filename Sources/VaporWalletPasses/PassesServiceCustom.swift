@@ -1,9 +1,10 @@
 import APNS
 import APNSCore
-import Fluent
-import FluentWalletPasses
+public import Fluent
+public import FluentWallet
+public import FluentWalletPasses
 import NIOSSL
-import Vapor
+public import Vapor
 import VaporAPNS
 import VaporWallet
 import WalletPasses
@@ -41,22 +42,19 @@ where
     ///   - pemCertificate: The PEM Certificate for signing passes.
     ///   - pemPrivateKey: The PEM Certificate's private key for signing passes.
     ///   - pemPrivateKeyPassword: The password to the private key. If the key is not encrypted it must be `nil`. Defaults to `nil`.
-    ///   - openSSLPath: The location of the `openssl` command as a file path.
     public init(
         app: Application,
         pemWWDRCertificate: String,
         pemCertificate: String,
         pemPrivateKey: String,
-        pemPrivateKeyPassword: String? = nil,
-        openSSLPath: String = "/usr/bin/openssl"
-    ) throws {
+        pemPrivateKeyPassword: String? = nil
+    ) async throws {
         self.app = app
         self.builder = PassBuilder(
             pemWWDRCertificate: pemWWDRCertificate,
             pemCertificate: pemCertificate,
             pemPrivateKey: pemPrivateKey,
-            pemPrivateKeyPassword: pemPrivateKeyPassword,
-            openSSLPath: openSSLPath
+            pemPrivateKeyPassword: pemPrivateKeyPassword
         )
 
         let privateKeyBytes = pemPrivateKey.data(using: .utf8)!.map { UInt8($0) }
@@ -83,7 +81,7 @@ where
                 environment: .production
             )
         }
-        app.apns.containers.use(
+        await app.apns.containers.use(
             apnsConfig,
             eventLoopGroupProvider: .shared(app.eventLoopGroup),
             responseDecoder: JSONDecoder(),

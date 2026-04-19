@@ -1,20 +1,16 @@
 <div align="center">
-    <img src="https://avatars.githubusercontent.com/u/26165732?s=200&v=4" width="100" height="100" alt="avatar" />
-    <h1>Vapor Wallet</h1>
-    <a href="https://swiftpackageindex.com/vapor-community/wallet/documentation">
-        <img src="https://design.vapor.codes/images/readthedocs.svg" alt="Documentation">
-    </a>
-    <a href="https://discord.gg/vapor"><img src="https://design.vapor.codes/images/discordchat.svg" alt="Team Chat"></a>
-    <a href="LICENSE"><img src="https://design.vapor.codes/images/mitlicense.svg" alt="MIT License"></a>
-    <a href="https://github.com/vapor-community/wallet/actions/workflows/test.yml">
-        <img src="https://img.shields.io/github/actions/workflow/status/vapor-community/wallet/test.yml?event=push&style=plastic&logo=github&label=tests&logoColor=%23ccc" alt="Continuous Integration">
-    </a>
-    <a href="https://codecov.io/github/vapor-community/wallet">
-        <img src="https://img.shields.io/codecov/c/github/vapor-community/wallet?style=plastic&logo=codecov&label=codecov">
-    </a>
-    <a href="https://swift.org">
-        <img src="https://design.vapor.codes/images/swift60up.svg" alt="Swift 6.0+">
-    </a>
+
+<img src="https://avatars.githubusercontent.com/u/26165732?s=200&v=4" width="200" height="200" alt="avatar">
+
+# Vapor Wallet
+
+[![Documentation](https://design.vapor.codes/images/readthedocs.svg)](https://swiftpackageindex.com/vapor-community/wallet/documentation)
+[![Team Chat](https://design.vapor.codes/images/discordchat.svg)](https://vapor.team)
+[![MIT License](https://design.vapor.codes/images/mitlicense.svg)](./LICENSE)
+[![Continuous Integration](https://img.shields.io/github/actions/workflow/status/vapor-community/wallet/test.yml?event=push&style=plastic&logo=github&label=tests&logoColor=ccc)](https://github.com/vapor-community/wallet/actions/workflows/test.yml)
+[![Code Coverage](https://img.shields.io/codecov/c/github/vapor-community/wallet?style=plastic&logo=codecov&label=codecov)](https://codecov.io/github/vapor-community/wallet)
+[![Swift 6.1+](https://design.vapor.codes/images/swift61up.svg)](https://swift.org/)
+
 </div>
 <br>
 
@@ -23,7 +19,7 @@
 Use the SPM string to easily include the dependendency in your `Package.swift` file.
 
 ```swift
-.package(url: "https://github.com/vapor-community/wallet.git", from: "0.7.0")
+.package(url: "https://github.com/vapor-community/wallet.git", from: "0.8.0")
 ```
 
 > Note: This package is made for Vapor 4.

@@ -1,3 +1,4 @@
+import Fluent
 import FluentKit
 import FluentSQLiteDriver
 import FluentWalletOrders
@@ -12,14 +13,12 @@ func withApp(
 ) async throws {
     let app = try await Application.make(.testing)
     do {
-        try #require(isLoggingConfigured)
-
         app.databases.use(.sqlite(.memory), as: .sqlite)
         OrdersService<OrderData>.register(migrations: app.migrations)
         app.migrations.add(CreateOrderData())
         try await app.autoMigrate()
 
-        let ordersService = try OrdersService<OrderData>(
+        let ordersService = try await OrdersService<OrderData>(
             app: app,
             pemWWDRCertificate: TestCertificate.pemWWDRCertificate,
             pemCertificate: useEncryptedKey ? TestCertificate.encryptedPemCertificate : TestCertificate.pemCertificate,

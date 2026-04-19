@@ -1,5 +1,5 @@
 import FluentWalletPasses
-import Vapor
+public import Vapor
 
 extension SerialNumbersDTO: @retroactive Content {}
 extension PersonalizationDictionaryDTO: @retroactive Content {}

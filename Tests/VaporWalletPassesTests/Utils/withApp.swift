@@ -1,3 +1,4 @@
+import Fluent
 import FluentKit
 import FluentSQLiteDriver
 import FluentWalletPasses
@@ -12,14 +13,12 @@ func withApp(
 ) async throws {
     let app = try await Application.make(.testing)
     do {
-        try #require(isLoggingConfigured)
-
         app.databases.use(.sqlite(.memory), as: .sqlite)
         PassesService<PassData>.register(migrations: app.migrations, withPersonalization: true)
         app.migrations.add(CreatePassData())
         try await app.autoMigrate()
 
-        let passesService = try PassesService<PassData>(
+        let passesService = try await PassesService<PassData>(
             app: app,
             pemWWDRCertificate: TestCertificate.pemWWDRCertificate,
             pemCertificate: useEncryptedKey ? TestCertificate.encryptedPemCertificate : TestCertificate.pemCertificate,

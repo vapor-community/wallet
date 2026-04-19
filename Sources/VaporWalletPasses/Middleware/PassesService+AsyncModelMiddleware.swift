@@ -1,6 +1,7 @@
-import FluentKit
+public import FluentKit
 import FluentWalletPasses
 import Foundation
+import Vapor
 
 extension PassesService: AsyncModelMiddleware {
     public func create(model: PassDataType, on db: any Database, next: any AnyAsyncModelResponder) async throws {

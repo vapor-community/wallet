@@ -1,4 +1,4 @@
 import FluentWalletOrders
-import Vapor
+public import Vapor
 
 extension OrderIdentifiersDTO: @retroactive Content {}

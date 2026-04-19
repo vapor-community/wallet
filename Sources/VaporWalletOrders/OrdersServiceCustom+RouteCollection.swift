@@ -1,6 +1,7 @@
 import Fluent
+import FluentWallet
 import FluentWalletOrders
-import Vapor
+public import Vapor
 import VaporWallet
 
 extension OrdersServiceCustom: RouteCollection {

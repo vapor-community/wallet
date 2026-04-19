@@ -1,5 +1,5 @@
-package enum TestCertificate {
-    package static let pemWWDRCertificate = """
+enum TestCertificate {
+    static let pemWWDRCertificate = """
         -----BEGIN CERTIFICATE-----
         MIIEVTCCAz2gAwIBAgIUE9x3lVJx5T3GMujM/+Uh88zFztIwDQYJKoZIhvcNAQEL
         BQAwYjELMAkGA1UEBhMCVVMxEzARBgNVBAoTCkFwcGxlIEluYy4xJjAkBgNVBAsT
@@ -28,7 +28,7 @@ package enum TestCertificate {
         -----END CERTIFICATE-----
         """
 
-    package static let pemCertificate = """
+    static let pemCertificate = """
         -----BEGIN CERTIFICATE-----
         MIIC8TCCAdmgAwIBAgICbE8wDQYJKoZIhvcNAQENBQAwGDEWMBQGA1UEAwwNUHVz
         aHlUZXN0Um9vdDAgFw0xNzA0MTcwMDUzMzBaGA8yMTE3MDMyNDAwNTMzMFowHzEd
@@ -49,7 +49,7 @@ package enum TestCertificate {
         -----END CERTIFICATE-----
         """
 
-    package static let pemPrivateKey = """
+    static let pemPrivateKey = """
         -----BEGIN PRIVATE KEY-----
         MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDHZkZBnDKM4Gt+
         WZwTc5h2GuT1Di7TfUE8SxDhw5wn3c3641/6lnrTj1Sh5tAsed8N2FDrD+Hp9zTk
@@ -80,36 +80,60 @@ package enum TestCertificate {
         -----END PRIVATE KEY-----
         """
 
-    package static let encryptedPemCertificate = """
+    static let encryptedPemCertificate = """
         -----BEGIN CERTIFICATE-----
-        MIICdDCCAVwCCQCtBOr7dtQS6zANBgkqhkiG9w0BAQsFADB7MQswCQYDVQQGEwJB
-        VTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0
-        cyBQdHkgTHRkMRAwDgYDVQQDDAdQYXNza2l0MSIwIAYJKoZIhvcNAQkBFhNub3Jl
-        cGx5QGV4YW1wbGUuY29tMB4XDTE5MDEzMTE2NTYzNloXDTI0MDEzMDE2NTYzNlow
-        RTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGElu
-        dGVybmV0IFdpZGdpdHMgUHR5IEx0ZDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQC1
-        +NQj0QzX5Vu9JMZVntP8i+JYAfOxzeP+MWUL/VaOxGaRp7DSiWAOd8bXDjJZjET0
-        4SPZzKvy0a6Suk9aIxCfAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAHd5jKTM4smJ
-        b4CoVY2PwYogb+bI4AtpUBV1QlsDrb1xMBHQ6zLf+JhRMya2MqJR+5hDKywrN4bC
-        j3LY87ir5aJFFaBMs9h0sCEoQKs0cnksf6Gq2pVJF9G+Aki4UF9r7jxoQwXjbtS3
-        m6ptezzKYvMcw5rKKhtZRgDT1uuy5hgOCapZrV1s0byRv3W6IcdzOD3cWZEuxz2D
-        AVZCwIvqThqMaAs3Fvs3L3aQsDiOJpZ65gNnBU6j21liMZ3q7txD3eCzuXWMLPI5
-        O7C4Sxy+LF4XAfd1/0nmHC2HBgA6CSMgncEzU6PLRR6bXH1daKWlcMAvF+STbLUJ
-        79kQMXh2OCs=
+        MIIDbTCCAlWgAwIBAgIUNfeuP4HsBlE8n4i/wgRQKrzXIk8wDQYJKoZIhvcNAQEL
+        BQAwRTELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFRlc3QxEjAQBgNVBAoMCVRlc3Qg
+        SW5jLjETMBEGA1UEAwwKVGVzdFdhbGxldDAgFw0yNjAyMTMxMDU0MTlaGA8yMTI2
+        MDEyMDEwNTQxOVowRTELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFRlc3QxEjAQBgNV
+        BAoMCVRlc3QgSW5jLjETMBEGA1UEAwwKVGVzdFdhbGxldDCCASIwDQYJKoZIhvcN
+        AQEBBQADggEPADCCAQoCggEBANHHsXUHx/iDcc/jXQOcSyRxeV/i7kJNF1MLxzzt
+        TpKbcbJ6yRukOOrwzcb8W27hi5L/JqDosvW5RhHFPHm4xpt6D9IffbzVlxyDuL+h
+        b7CiVfV/54Y91ZM8PBZyrfhAr4ws6O5uJu87mhZfm7nADsNlmrGWZ0hcHWNA+o1N
+        3D+RIfUrB90Y6QBnuZdaHa3sl8iLUH8vAO+7o1iBu7KfFPhWdwDuoQDS0HEZ3JE1
+        zkZKSdNgofBouxAHT5K6JsIsqGqpRRwDY9FBOs6E5fefhy31n6xceexcoUWgrLoS
+        R0HU1oa9rOJaKf0sbRkZdxWK8ntlqm2SDm0FNQF5UXJ8nLsCAwEAAaNTMFEwHQYD
+        VR0OBBYEFIntVXmsE8H45UJjF+pwkqn0gJYaMB8GA1UdIwQYMBaAFIntVXmsE8H4
+        5UJjF+pwkqn0gJYaMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEB
+        ADWTEdxCLKKkFtHXR1YTBiwT/nxvigwSl+CWz1w2HGnW8VWoMy2fBeBJ3JR7BH3n
+        adxoSG3C9OxLLc0IXmvxMWGalRRmWWGXmYn4tqPKWuqiE9mnAKCNSDvB0NXwDMno
+        25muuX/0MpZt1E6s/qf/XUibpY2IcgjE+5fpV15+WRdTP6pkBpnt19xjuK4yk0pX
+        E6In1ZRoWl+Z/j65EYQBGBPjyBGKXloAqnr0oXqhK71gU0vMnXqMqZjA35BXCf7y
+        iYM6UOy38HfXAkGQ8pgGY0ck4D0YWZLWQgrNB1jBMftrAtalMsNoZsi7Ue57R3X6
+        Vj0aim+b8zrQ1hwkxUqLYZY=
         -----END CERTIFICATE-----
         """
 
-    package static let encryptedPemPrivateKey = """
+    static let encryptedPemPrivateKey = """
         -----BEGIN ENCRYPTED PRIVATE KEY-----
-        MIIBpjBABgkqhkiG9w0BBQ0wMzAbBgkqhkiG9w0BBQwwDgQIMBNCLGhiuR4CAggA
-        MBQGCCqGSIb3DQMHBAjXF3m+2fdMRgSCAWAaGMyNREsNYTuTE0Zf/GIORBQH1Vjc
-        pNTvxV0B/YUHfzthOkotQjL8mfbbCWVixEdDE41Rn66WVrVmgFDVIKoGhjsMLGYd
-        angmocOnZ77ZYXi0f0/8fZYuQF2dF/zOfsdxyNl2gi4MGbKqt8m9vDcFAWEZsN/r
-        5l1QJYNpF4OXKwNg4dnf7Ugo3PMWrVxKzKn+KtUvQd+mdYJ3xBjr1yLjLacbCXh0
-        4Kh1kWeV6yyaZswYPPItyAeg4smLdDTEqFI+GHIT7NFQ0GIojIqz2Ug8KWZaMwZs
-        iRCYXHDECkC7zqgcxJKRtjDmCJIxfIFcnwJ8DmMf7bpawtowcfM/z7TGSzAUeptA
-        bH9rS4Zf5/5Sx/yFRr2esClwli5BJG1uISQBpA0DePhePTiW6LesvAt3YZ3p2BCI
-        OE0HwdbAr24Nw7LRCuobRsTKFnBmM+uqtGyJhKE6hC1q4CPjZ09F8njX
+        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
         -----END ENCRYPTED PRIVATE KEY-----
         """
 }

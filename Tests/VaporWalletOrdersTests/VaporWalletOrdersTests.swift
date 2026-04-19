@@ -1,12 +1,17 @@
+import Fluent
+import FluentKit
+import FluentWallet
 import FluentWalletOrders
+import SystemPackage
 import Testing
+import VaporAPNS
 import VaporTesting
 import WalletOrders
 import ZipArchive
 
 @testable import VaporWalletOrders
 
-@Suite("VaporWalletOrders Tests", .serialized)
+@Suite("VaporWalletOrders Tests")
 struct VaporWalletOrdersTests {
     let ordersURI = "/api/orders/v1/"
     let decoder = JSONDecoder()
@@ -57,7 +62,7 @@ struct VaporWalletOrdersTests {
                 ],
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
-                    #expect(res.body != nil)
+                    #expect(res.body.readableBytes > 0)
                     #expect(res.headers.contentType?.description == "application/vnd.apple.order")
                     #expect(res.headers.lastModified != nil)
                 }
@@ -268,7 +273,7 @@ struct VaporWalletOrdersTests {
     @Test("APNS Client", arguments: [true, false])
     func apnsClient(useEncryptedKey: Bool) async throws {
         try await withApp(useEncryptedKey: useEncryptedKey) { app, ordersService in
-            #expect(app.apns.client(.init(string: "orders")) != nil)
+            _ = await app.apns.client(.init(string: "orders"))
 
             let orderData = OrderData(title: "Test Order")
             try await orderData.create(on: app.db)

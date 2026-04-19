@@ -1,12 +1,17 @@
+import Fluent
+import FluentKit
+import FluentWallet
 import FluentWalletPasses
+import SystemPackage
 import Testing
+import VaporAPNS
 import VaporTesting
 import WalletPasses
 import ZipArchive
 
 @testable import VaporWalletPasses
 
-@Suite("VaporWalletPasses Tests", .serialized)
+@Suite("VaporWalletPasses Tests")
 struct VaporWalletPassesTests {
     let passesURI = "/api/passes/v1/"
     let decoder = JSONDecoder()
@@ -56,7 +61,7 @@ struct VaporWalletPassesTests {
             try await passData2.create(on: app.db)
 
             let data = try await passesService.build(passes: [passData1, passData2], on: app.db)
-            #expect(data != nil)
+            #expect(!data.isEmpty)
 
             do {
                 let data = try await passesService.build(passes: [passData1], on: app.db)
@@ -120,7 +125,7 @@ struct VaporWalletPassesTests {
                 ],
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
-                    #expect(res.body != nil)
+                    #expect(res.body.readableBytes > 0)
                     #expect(res.headers.contentType?.description == "application/vnd.apple.pkpass")
                     #expect(res.headers.lastModified != nil)
                 }
@@ -207,7 +212,7 @@ struct VaporWalletPassesTests {
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
-                    #expect(res.body != nil)
+                    #expect(res.body.readableBytes > 0)
                     #expect(res.headers.contentType?.description == "application/octet-stream")
                 }
             )
@@ -399,7 +404,7 @@ struct VaporWalletPassesTests {
     @Test("APNS Client", arguments: [true, false])
     func apnsClient(useEncryptedKey: Bool) async throws {
         try await withApp(useEncryptedKey: useEncryptedKey) { app, passesService in
-            #expect(app.apns.client(.init(string: "passes")) != nil)
+            _ = await app.apns.client(.init(string: "passes"))
 
             let passData = PassData(title: "Test Pass")
             try await passData.create(on: app.db)
