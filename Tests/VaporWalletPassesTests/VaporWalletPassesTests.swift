@@ -227,6 +227,23 @@ struct VaporWalletPassesTests {
             #expect(personalizationQuery[0]._$phoneNumber.value == personalizationDict.requiredPersonalizationInfo.phoneNumber)
             #expect(personalizationQuery[0]._$postalCode.value == personalizationDict.requiredPersonalizationInfo.postalCode)
 
+            // Apple's Wallet Web Service Protocol retries POST on non-2xx responses.
+            // A retry of /personalize must be idempotent — return 200 with the same
+            // signed token, and not create a duplicate PersonalizationInfo row.
+            try await app.test(
+                .POST,
+                "\(passesURI)passes/\(pass.typeIdentifier)/\(pass.requireID())/personalize",
+                beforeRequest: { req async throws in
+                    try req.content.encode(personalizationDict)
+                },
+                afterResponse: { res async throws in
+                    #expect(res.status == .ok)
+                    #expect(res.body.readableBytes > 0)
+                }
+            )
+            let personalizationQueryAfterRetry = try await PersonalizationInfo.query(on: app.db).all()
+            #expect(personalizationQueryAfterRetry.count == 1)
+
             // Test call with invalid pass ID
             try await app.test(
                 .POST,

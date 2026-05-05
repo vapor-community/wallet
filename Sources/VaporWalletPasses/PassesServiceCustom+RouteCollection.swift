@@ -200,16 +200,26 @@ extension PassesServiceCustom: RouteCollection {
 
         let userInfo = try req.content.decode(PersonalizationDictionaryDTO.self)
 
-        let personalization = PersonalizationInfoType()
-        personalization.fullName = userInfo.requiredPersonalizationInfo.fullName
-        personalization.givenName = userInfo.requiredPersonalizationInfo.givenName
-        personalization.familyName = userInfo.requiredPersonalizationInfo.familyName
-        personalization.emailAddress = userInfo.requiredPersonalizationInfo.emailAddress
-        personalization.postalCode = userInfo.requiredPersonalizationInfo.postalCode
-        personalization.isoCountryCode = userInfo.requiredPersonalizationInfo.isoCountryCode
-        personalization.phoneNumber = userInfo.requiredPersonalizationInfo.phoneNumber
-        personalization._$pass.id = id
-        try await personalization.create(on: req.db)
+        // Apple's Wallet Web Service Protocol retries POST on non-2xx responses.
+        // PersonalizationInfo's migration declares `.unique(on: passID)`, so a
+        // bare `create(on:)` on retry throws a unique-violation, surfacing as
+        // 500 and looping Apple's retry. Read first, mirroring the dedup-guard
+        // pattern used by `createRegistration` above.
+        let existing = try await PersonalizationInfoType.query(on: req.db)
+            .filter(\._$pass.$id == id)
+            .first()
+        if existing == nil {
+            let personalization = PersonalizationInfoType()
+            personalization.fullName = userInfo.requiredPersonalizationInfo.fullName
+            personalization.givenName = userInfo.requiredPersonalizationInfo.givenName
+            personalization.familyName = userInfo.requiredPersonalizationInfo.familyName
+            personalization.emailAddress = userInfo.requiredPersonalizationInfo.emailAddress
+            personalization.postalCode = userInfo.requiredPersonalizationInfo.postalCode
+            personalization.isoCountryCode = userInfo.requiredPersonalizationInfo.isoCountryCode
+            personalization.phoneNumber = userInfo.requiredPersonalizationInfo.phoneNumber
+            personalization._$pass.id = id
+            try await personalization.create(on: req.db)
+        }
 
         guard let token = userInfo.personalizationToken.data(using: .utf8) else {
             throw Abort(.internalServerError)
